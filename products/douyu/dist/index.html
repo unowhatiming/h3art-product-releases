@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-title" content="豆屿"><meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#f7f5ee"><meta name="description" content="豆屿拼豆工作室：把图片变成拼豆图纸，逐颗编辑、自由换色、统计用豆，导出你的手工作品。">
+  <title>豆屿 · 拼豆工作室</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23245c4e'/%3E%3Ccircle cx='32' cy='32' r='19' fill='%23f7cd64'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%23245c4e'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <script src="core.js" defer></script><script src="palettes.js" defer></script><script src="touch.js" defer></script><script src="app.js" defer></script><script src="mobile.js" defer></script>
+</head>
+<body data-mobile-panel="edit">
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="豆屿首页"><span class="brand-mark"><i></i><i></i><i></i><i></i></span><span>豆屿 <small>BEAD STUDIO</small></span></a>
+    <div class="project-header"><input id="projectName" aria-label="作品名称" value="窗边的小花" maxlength="40"><span id="saveStatus" role="status">准备就绪</span></div>
+    <nav aria-label="项目操作"><button id="helpBtn" class="text-btn">使用指南 <span class="key">?</span></button><button id="openProjectBtn" class="text-btn">打开项目</button><button id="saveProjectBtn" class="outline-btn">保存项目</button><button id="exportBtn" class="primary-btn">导出图纸 <span>↗</span></button></nav>
+  </header>
+  <main>
+    <div class="phone-welcome"><span>随手打开，慢慢拼。</span><button id="phoneGuideBtn">手机使用 / 分享 ↗</button><span id="offlineStatus" role="status">图片在本机处理</span><button id="updateAppBtn" hidden>保存并更新</button></div>
+    <section class="intro"><div><div class="eyebrow">A LITTLE COLOR, A LITTLE JOY.</div><h1>把喜欢的画面，<em>一颗颗拼出来。</em></h1></div><p>从一张图片，到一份手作。<br>今天，也给生活添一点颜色。</p><div class="intro-beads" aria-hidden="true"><i></i><i></i><i></i></div></section>
+    <div class="workspace">
+      <aside class="left-panel panel" aria-label="图片与生成设置">
+        <div class="panel-heading"><span class="step">01</span><h2>图片与图纸</h2><span class="micro-label">START HERE</span></div>
+        <button id="uploadBtn" class="upload-zone"><img id="sourcePreview" alt="用于生成图纸的原图" hidden><span id="uploadPrompt"><span class="upload-icon">↥</span><strong>放进一张喜欢的图片</strong><small>点击上传 / 拖入 / Ctrl + V 粘贴</small><small>PNG、JPG、WebP · 最大 20 MB</small></span><span id="imageLabel" hidden>点击更换图片</span></button>
+        <div class="example-row"><span>试试灵感</span><button data-example="flower" class="example-chip">小花</button><button data-example="cherry" class="example-chip">樱桃</button><button data-example="cat" class="example-chip">猫咪</button><button id="blankBtn" class="example-chip">空白</button></div>
+        <div class="control-section">
+          <div class="section-title"><h3>图纸尺寸</h3><label class="check compact"><input type="checkbox" id="lockRatio" checked>锁定比例</label></div>
+          <div class="size-row"><label><span>宽 / 颗</span><input id="gridWidth" type="number" min="1" max="160" value="32"></label><span>×</span><label><span>高 / 颗</span><input id="gridHeight" type="number" min="1" max="160" value="32"></label></div>
+          <div class="preset-row"><button data-size="29">29 × 29</button><button data-size="48">48 × 48</button><button data-size="64">64 × 64</button><button id="resizeBtn" title="直接改变当前图纸尺寸，不需要原图">调整画布…</button></div>
+          <div class="range-heading"><label for="maxColors">最多用色</label><span><output id="maxColorsValue">16</output> 色</span></div><input id="maxColors" type="range" min="2" max="64" value="16">
+          <p class="field-hint">少一点颜色，更容易准备材料。</p>
+          <label class="select-label">取图方式<select id="imageFit"><option value="contain">完整保留 · 留白适配</option><option value="cover">填满画布 · 居中裁切</option><option value="stretch">拉伸到画布</option></select></label>
+          <div id="cropOptions" hidden><div class="range-heading"><label for="cropX">裁切位置 · 左右</label><output id="cropXValue">50</output></div><input id="cropX" type="range" min="0" max="100" value="50"><div class="range-heading"><label for="cropY">裁切位置 · 上下</label><output id="cropYValue">50</output></div><input id="cropY" type="range" min="0" max="100" value="50"></div>
+        </div>
+        <details class="control-section" open><summary>基础调节 <span>光线与色彩</span></summary><div class="details-body">
+          <div class="range-heading"><label for="brightness">亮度</label><output id="brightnessValue">0</output></div><input id="brightness" type="range" min="-60" max="60" value="0">
+          <div class="range-heading"><label for="contrast">对比度</label><output id="contrastValue">0</output></div><input id="contrast" type="range" min="-80" max="80" value="0">
+          <div class="range-heading"><label for="saturation">饱和度</label><output id="saturationValue">100</output></div><input id="saturation" type="range" min="0" max="200" value="100">
+          <label class="check"><input id="removeWhite" type="checkbox">去除边缘白底</label><div id="whiteOptions" hidden><div class="range-heading"><label for="tolerance">白底容差</label><output id="toleranceValue">30</output></div><input id="tolerance" type="range" min="0" max="100" value="30"></div>
+          <label class="check"><input id="dither" type="checkbox">抖动混色 <span class="muted">适合照片</span></label><label class="check"><input id="smooth" type="checkbox" checked>平滑采样 <span class="muted">像素画可关闭</span></label><button id="resetAdjustBtn" class="text-btn reset-btn">恢复默认调节</button>
+        </div></details>
+        <div class="generate-wrap"><button id="generateBtn" class="primary-btn generate-btn">✧ 生成拼豆图纸</button><p id="generationHint">调好参数后生成，随后可逐颗编辑</p></div>
+      </aside>
+      <section class="editor panel" aria-label="图纸编辑器">
+        <div class="mobile-paint-bar"><button id="mobileColorBtn"><span id="mobileSwatch" class="swatch"></span><span id="mobileColorCode">当前色</span><span>换色 ›</span></button><button id="mobileReadBtn" aria-pressed="false">看图模式</button></div>
+        <div class="editor-heading"><div><span class="step">02</span><h2>你的创作台</h2><span class="live-tag">自由编辑</span></div><div class="history-buttons"><button id="undoBtn" class="icon-btn" title="撤销 Ctrl+Z" aria-label="撤销">↶</button><button id="redoBtn" class="icon-btn" title="重做 Ctrl+Shift+Z" aria-label="重做">↷</button></div></div>
+        <div class="editor-toolbar"><div class="tool-group" role="toolbar" aria-label="绘图工具">
+          <button data-tool="brush" class="tool active" title="画笔 B" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="m15 4 5 5-11 11H4v-5Z M12 7l5 5"/></svg><span>画笔</span></button>
+          <button data-tool="eraser" class="tool" title="橡皮擦 E" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="m14 3 7 7-10 11H6l-4-5Z M7 10l7 7 M11 21h10"/></svg><span>擦除</span></button>
+          <button data-tool="fill" class="tool" title="区域填色 F" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="m10 3 10 10-8 8L2 11l8-8Zm-5 10h14 M8 2l5 6 M21 16s-4 5 0 5 0-5 0-5"/></svg><span>填色</span></button>
+          <button data-tool="picker" class="tool" title="吸管 I" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="m15 3 6 6 M17 5 5 17v3h3L20 8 M12 6l6 6"/></svg><span>取色</span></button>
+          <button data-tool="select" class="tool" title="框选 S" aria-pressed="false"><svg viewBox="0 0 24 24"><path stroke-dasharray="3 3" d="M3 3h18v18H3Z"/></svg><span>框选</span></button>
+          <button data-tool="pan" class="tool" title="移动 H / 按住空格" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 2v20 M2 12h20 M8 6l4-4 4 4 M8 18l4 4 4-4 M6 8l-4 4 4 4 M18 8l4 4-4 4"/></svg><span>移动</span></button>
+        </div><label class="brush-control">笔触<select id="brushSize" aria-label="笔触大小"><option value="1">1 颗</option><option value="3">3 颗</option><option value="5">5 颗</option><option value="9">9 颗</option></select></label></div>
+        <div class="view-bar"><div class="segmented" aria-label="显示方式"><button data-view="beads" class="active" aria-pressed="true">豆子</button><button data-view="pattern" aria-pressed="false">图纸</button></div><label class="check compact"><input id="showGrid" type="checkbox" checked>网格</label><label class="check compact"><input id="showCodes" type="checkbox">色号</label><label class="check compact"><input id="showBoards" type="checkbox">分板</label><span class="view-spacer"></span><button id="flipHBtn" class="icon-btn" title="左右翻转" aria-label="左右翻转">⇆</button><button id="flipVBtn" class="icon-btn" title="上下翻转" aria-label="上下翻转">⇅</button><button id="rotateBtn" class="icon-btn" title="顺时针旋转" aria-label="顺时针旋转">⟳</button><button id="trimBtn" class="text-btn" title="裁掉图纸外围的空白格">裁边</button></div>
+        <div class="canvas-stage" id="canvasStage"><div class="canvas-wrap" id="canvasWrap"><canvas id="beadCanvas" tabindex="0" aria-label="拼豆编辑画布，选择工具后点击或拖动编辑；方向键移动光标，回车使用工具"></canvas></div><div class="canvas-empty-note" id="emptyNote" hidden>选一个颜色，画下第一颗豆子。</div></div>
+        <div class="selection-bar" id="selectionBar" hidden><span id="selectionInfo">已框选</span><button id="fillSelectionBtn">填入当前色</button><button id="eraseSelectionBtn">清空选区</button><button id="cancelSelectionBtn">取消</button></div>
+        <div class="canvas-footer"><div><span class="status-dot"></span><span id="canvasInfo">32 × 32 颗</span><span id="cursorInfo" class="muted">从一颗开始</span></div><div class="zoom-controls"><button id="zoomOutBtn" aria-label="缩小">−</button><output id="zoomValue">100%</output><button id="zoomInBtn" aria-label="放大">+</button><button id="fitBtn">适应</button></div></div>
+        <div class="editor-bottom"><span id="toolHint">拖动画笔，给每一颗豆子一点颜色</span><span>Ctrl + 滚轮缩放 · 空格拖动</span></div>
+      </section>
+      <aside class="right-panel panel" aria-label="配色与材料">
+        <div class="panel-heading"><span class="step">03</span><h2>配色与材料</h2></div>
+        <div class="brand-picker"><label for="brandPalette">拼豆品牌 / 色板</label><select id="brandPalette" aria-describedby="paletteNotice"></select><p id="paletteNotice"></p><div class="brand-links"><button id="paletteLibraryBtn" class="text-btn">浏览色板素材库</button><button id="paletteSourceBtn" class="text-btn">数据来源</button></div></div>
+        <div class="current-color"><span id="currentSwatch" class="large-bead"></span><div><small>当前画笔</small><strong id="currentColorName"></strong><span id="currentColorHex"></span></div><button id="customColorBtn" class="icon-btn" title="添加自定义颜色" aria-label="添加自定义颜色">＋</button></div>
+        <div class="palette-tabs" role="tablist"><button id="usedTab" class="active" role="tab" aria-selected="true">已用颜色 <span id="usedCount">0</span></button><button id="allTab" role="tab" aria-selected="false">完整色板 <span id="allCount">64</span></button></div>
+        <input type="search" id="colorSearch" class="color-search" placeholder="搜索色号、颜色名称或 HEX" aria-label="搜索色号、颜色名称或 HEX">
+        <div id="colorList" class="color-list" role="tabpanel" aria-label="颜色列表"></div>
+        <div class="palette-actions"><button id="replaceBtn" class="outline-btn">⇄ 批量换色</button><button id="highlightBtn" class="outline-btn" aria-pressed="false">定位当前色</button></div>
+        <details class="palette-details"><summary>色板管理 <span id="paletteName">MARD · 221 色</span></summary><p>切换品牌会按近似颜色匹配当前图纸，可撤销。想从原图重新配色，请点击「生成」。标记为特殊材质的颜色仅供手动选用，屏幕色值请与实物核对。</p><div><button id="importPaletteBtn" class="text-btn">导入色板 JSON</button><button id="exportPaletteBtn" class="text-btn">导出当前色板</button></div></details>
+        <div class="material-card"><div class="section-title"><h3>这份作品需要</h3><span class="little-star">✳</span></div><div class="material-numbers"><div><strong id="totalBeads">0</strong><span>颗豆子</span></div><div><strong id="totalColors">0</strong><span>种颜色</span></div></div><div class="material-line"><span>成品尺寸</span><strong id="physicalSize">16 × 16 cm</strong></div><div class="material-line"><span>拼板数量 <small>29 × 29</small></span><strong id="boardCount">4 块</strong></div><div class="material-settings"><label>豆子规格<select id="beadSize"><option value="5">5 mm</option><option value="2.6">2.6 mm</option><option value="3">3 mm</option></select></label><label>备损比例<div class="suffix-input"><input id="sparePercent" type="number" min="0" max="100" value="10"><span>%</span></div></label></div><div class="material-line"><span>含备损备豆</span><strong id="withSpare">0 颗</strong></div><label class="price-row">每颗单价 / 元<input id="unitPrice" type="number" min="0" max="100" step="0.001" value="0.02"></label><div class="cost-line"><span>材料估算 <small>含备损</small></span><strong id="cost">¥0.00</strong></div><button id="csvBtn" class="text-btn material-export">下载用豆清单 CSV ↗</button></div>
+        <p class="quiet-note">小小一颗，也能拼出大大的喜欢。<br>图片在本地处理，你的灵感只属于你。</p>
+      </aside>
+    </div>
+    <footer class="page-footer"><span>豆屿 <b>·</b> 留一点时间给喜欢的事</span><span>浏览器自动保存 · 支持离线使用</span></footer>
+  </main>
+  <nav class="mobile-nav" aria-label="手机工作区"><button data-panel="image" aria-controls="imagePanel"><span>01</span>选图与生成</button><button data-panel="edit" aria-controls="editPanel" aria-current="page"><span>02</span>编辑图纸</button><button data-panel="colors" aria-controls="colorsPanel"><span>03</span>配色与材料</button></nav>
+  <input type="file" id="imageInput" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp" hidden><input type="file" id="projectInput" accept=".json,.beads.json" hidden><input type="file" id="paletteInput" accept=".json" hidden>
+  <dialog id="dialog"><div class="dialog-head"><h2 id="dialogTitle"></h2><button id="closeDialogBtn" class="icon-btn" aria-label="关闭">×</button></div><div id="dialogBody"></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div><div id="printArea"></div>
+</body></html>

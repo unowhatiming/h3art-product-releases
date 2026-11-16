@@ -1,0 +1,7 @@
+{
+  "name": "douyu-bead-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser-local bead pattern generator and editor",
+  "scripts": {"start": "node server.cjs", "test": "node --test --test-isolation=none tests/core.test.cjs tests/palettes.test.cjs"}
+}

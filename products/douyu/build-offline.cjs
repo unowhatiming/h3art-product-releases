@@ -1,0 +1,15 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const read = name => fs.readFileSync(path.join(__dirname,'dist',name),'utf8');
+let html=read('index.html');
+html=html.replace('<link rel="stylesheet" href="style.css">',()=>'<style>\n'+read('style.css')+'\n</style>');
+html=html.replace(/<script src="(?:core|palettes|touch|app|mobile)\.js" defer><\/script>/g,'');
+html=html.replace(/<link rel="(?:manifest|apple-touch-icon)"[^>]+>/g,'');
+html=html.replace('</body>',()=>['core.js','palettes.js','touch.js','app.js','mobile.js'].map(file=>'<script>\n'+read(file)+'\n</script>').join('\n')+'\n</body>');
+const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+if(scripts.length!==5)throw Error('Offline bundle must contain all five scripts');
+scripts.forEach((script,i)=>new vm.Script(script[1],{filename:'embedded-'+i+'.js'}));
+if(/(?:src|href)="https?:/.test(html))throw Error('Offline runtime must not require remote assets');
+fs.writeFileSync(path.join(__dirname,'豆屿拼豆工作室.html'),html,'utf8');
+console.log('Created standalone offline HTML ('+Buffer.byteLength(html)+' bytes)');

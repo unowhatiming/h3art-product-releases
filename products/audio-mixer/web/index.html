@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>抖音混音台 · 人声降噪与响度标准化</title>
+<style>
+  :root{
+    --bg:#f4f5f7;
+    --card:#ffffff;
+    --line:#e4e7ee;
+    --line-strong:#d3d8e2;
+    --text:#14171f;
+    --muted:#6b7280;
+    --faint:#9aa1ad;
+    --accent:#4f46e5;
+    --accent-soft:#eef0fe;
+    --accent-line:#c7cbfa;
+    --ok:#0d9488;
+    --ok-soft:#e6f6f4;
+    --warn:#b45309;
+    --radius:12px;
+    --shadow:0 1px 2px rgba(20,23,31,.05), 0 8px 24px -12px rgba(20,23,31,.12);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:32px 20px 72px;
+  }
+  .wrap{max-width:1000px;margin:0 auto}
+
+  /* ---------- header ---------- */
+  header{margin-bottom:22px}
+  h1{font-size:23px;font-weight:650;letter-spacing:-.2px;margin:0 0 6px}
+  .sub{color:var(--muted);font-size:13.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);display:inline-block}
+  .sub code{background:#eaecf2;padding:1px 6px;border-radius:5px;font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace}
+
+  /* ---------- card ---------- */
+  .card{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);
+    margin-bottom:16px;overflow:hidden;
+  }
+  .card-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:13px 18px;border-bottom:1px solid var(--line);
+    font-size:13px;font-weight:600;letter-spacing:.2px;
+  }
+  .card-head .n{
+    font-weight:600;color:var(--faint);font-size:11.5px;
+    border:1px solid var(--line-strong);border-radius:5px;
+    padding:1px 6px;margin-right:9px;font-variant-numeric:tabular-nums;
+  }
+  .card-head .hint{font-weight:400;color:var(--faint);font-size:12px}
+  .card-body{padding:18px}
+
+  /* ---------- drop ---------- */
+  #drop{
+    border:1.5px dashed var(--line-strong);border-radius:var(--radius);
+    padding:44px 20px;text-align:center;cursor:pointer;
+    transition:border-color .15s, background .15s;
+    background:#fbfbfd;
+  }
+  #drop:hover{border-color:var(--accent-line);background:var(--accent-soft)}
+  #drop.over{border-color:var(--accent);background:var(--accent-soft);border-style:solid}
+  #drop svg{display:block;margin:0 auto 12px;color:var(--faint)}
+  #drop:hover svg,#drop.over svg{color:var(--accent)}
+  #drop .t1{font-weight:600;font-size:15px;margin-bottom:4px}
+  #drop .t2{color:var(--muted);font-size:12.5px}
+  #drop .t3{color:var(--faint);font-size:11.5px;margin-top:10px}
+
+  /* ---------- file chip ---------- */
+  .chip{
+    display:flex;align-items:center;gap:12px;
+    background:#fafbfd;border:1px solid var(--line);
+    border-radius:10px;padding:11px 14px;
+  }
+  .chip .ficon{
+    width:34px;height:34px;border-radius:8px;background:var(--accent-soft);
+    display:flex;align-items:center;justify-content:center;color:var(--accent);flex:0 0 auto;
+  }
+  .chip .fname{font-weight:600;font-size:13.5px;word-break:break-all}
+  .chip .fmeta{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+  .chip .grow{flex:1;min-width:0}
+  .linkbtn{
+    background:none;border:none;color:var(--muted);font-size:12.5px;
+    cursor:pointer;padding:4px 8px;border-radius:6px;font-family:inherit;
+  }
+  .linkbtn:hover{background:#eef0f4;color:var(--text)}
+
+  /* ---------- player ---------- */
+  .player{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+  .player+.player{margin-top:12px}
+  .player.is-result{border-color:var(--accent-line)}
+  .phead{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:9px 13px;border-bottom:1px solid var(--line);background:#fafbfd;
+  }
+  .tag{
+    font-size:11.5px;font-weight:600;letter-spacing:.3px;
+    padding:2px 8px;border-radius:5px;background:#eef0f4;color:var(--muted);
+  }
+  .player.is-result .tag{background:var(--accent);color:#fff}
+  .phead .pmeta{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+  .wavewrap{position:relative;height:82px;cursor:pointer;background:#fff}
+  .wavewrap canvas{display:block;width:100%;height:82px}
+  .playhead{
+    position:absolute;top:0;bottom:0;width:1.5px;background:var(--accent);
+    left:0;pointer-events:none;opacity:0;transition:opacity .12s;
+  }
+  .player.playing .playhead,.player:hover .playhead{opacity:1}
+  .pfoot{
+    display:flex;align-items:center;gap:12px;
+    padding:8px 13px;border-top:1px solid var(--line);background:#fafbfd;
+  }
+  .playbtn{
+    width:32px;height:32px;border-radius:50%;border:none;background:var(--accent);
+    color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    flex:0 0 auto;transition:transform .1s, filter .15s;
+  }
+  .playbtn:hover{filter:brightness(1.1)}
+  .playbtn:active{transform:scale(.93)}
+  .playbtn[disabled]{background:#c9cdd6;cursor:default}
+  .ptime{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .pvol{margin-left:auto;display:flex;align-items:center;gap:7px;color:var(--faint)}
+  .pvol input{width:74px;accent-color:var(--accent)}
+
+  /* ---------- controls ---------- */
+  .row{display:flex;align-items:flex-start;gap:16px;padding:13px 0;border-bottom:1px solid #f0f2f6}
+  .row:last-child{border-bottom:none;padding-bottom:0}
+  .row:first-child{padding-top:0}
+  .rlabel{width:132px;flex:0 0 auto;padding-top:3px}
+  .rlabel .l1{font-size:13.5px;font-weight:600}
+  .rlabel .l2{font-size:11.5px;color:var(--faint);line-height:1.45;margin-top:2px}
+  .rctl{flex:1;min-width:0}
+
+  .seg{display:inline-flex;background:#f0f2f6;border-radius:8px;padding:3px;gap:2px}
+  .seg button{
+    border:none;background:none;font-family:inherit;font-size:12.5px;color:var(--muted);
+    padding:5px 13px;border-radius:6px;cursor:pointer;transition:all .13s;white-space:nowrap;
+  }
+  .seg button:hover{color:var(--text)}
+  .seg button.on{background:#fff;color:var(--accent);font-weight:600;box-shadow:0 1px 2px rgba(20,23,31,.1)}
+
+  .switches{display:flex;flex-wrap:wrap;gap:9px}
+  .sw{
+    display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;
+    border:1px solid var(--line);border-radius:8px;padding:6px 11px 6px 8px;
+    font-size:12.5px;transition:border-color .13s, background .13s;
+  }
+  .sw:hover{border-color:var(--line-strong)}
+  .sw.on{border-color:var(--accent-line);background:var(--accent-soft)}
+  .sw input{display:none}
+  .knob{
+    width:30px;height:17px;border-radius:9px;background:#d8dce4;position:relative;
+    transition:background .15s;flex:0 0 auto;
+  }
+  .knob::after{
+    content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:transform .15s;
+  }
+  .sw.on .knob{background:var(--accent)}
+  .sw.on .knob::after{transform:translateX(13px)}
+  .sw .sl{color:var(--muted)}
+  .sw.on .sl{color:var(--accent);font-weight:600}
+
+  .slider{display:flex;align-items:center;gap:14px}
+  .slider input[type=range]{flex:1;max-width:340px;accent-color:var(--accent);height:4px}
+  .lufsval{
+    font-variant-numeric:tabular-nums;font-weight:650;font-size:14px;color:var(--accent);
+    min-width:82px;
+  }
+  .scalehint{font-size:11.5px;color:var(--faint);margin-top:5px}
+
+  /* ---------- action ---------- */
+  .actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .primary{
+    background:var(--accent);color:#fff;border:none;border-radius:10px;
+    font-family:inherit;font-size:14.5px;font-weight:600;padding:12px 30px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:9px;transition:filter .15s, transform .1s;
+  }
+  .primary:hover:not([disabled]){filter:brightness(1.08)}
+  .primary:active:not([disabled]){transform:translateY(1px)}
+  .primary[disabled]{background:#c9cdd6;cursor:not-allowed}
+  .spin{
+    width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;
+    border-radius:50%;animation:sp .7s linear infinite;display:none;
+  }
+  .primary.busy .spin{display:block}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .status{font-size:13px;color:var(--muted)}
+  .status.err{color:#c0392b}
+
+  /* ---------- result ---------- */
+  #result{display:none}
+  #result.show{display:block}
+  .stats{display:flex;gap:26px;flex-wrap:wrap;margin:16px 0 0}
+  .stat .k{font-size:11.5px;color:var(--faint);letter-spacing:.2px}
+  .stat .v{font-size:17px;font-weight:650;font-variant-numeric:tabular-nums;margin-top:1px}
+  .stat .v small{font-size:12px;font-weight:500;color:var(--muted)}
+  .dlrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}
+  .dl{
+    background:var(--ok);color:#fff;text-decoration:none;border-radius:10px;
+    font-size:14.5px;font-weight:600;padding:12px 26px;
+    display:inline-flex;align-items:center;gap:9px;transition:filter .15s;
+  }
+  .dl:hover{filter:brightness(1.08)}
+
+  .note{
+    font-size:12.5px;color:var(--muted);background:#fafbfd;border:1px solid var(--line);
+    border-radius:10px;padding:13px 16px;line-height:1.75;
+  }
+  .note b{color:var(--text);font-weight:600}
+  .note ul{margin:6px 0 0;padding-left:18px}
+  .note li{margin:2px 0}
+
+  .toast{
+    position:fixed;left:50%;bottom:34px;transform:translate(-50%,16px);
+    background:#14171f;color:#fff;padding:11px 20px;border-radius:10px;font-size:13.5px;
+    opacity:0;pointer-events:none;transition:all .22s;z-index:99;max-width:80vw;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  @media (max-width:720px){
+    .row{flex-direction:column;gap:9px}
+    .rlabel{width:auto}
+    body{padding:20px 14px 60px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>抖音混音台</h1>
+    <div class="sub">
+      <span><span class="dot"></span> 本地运行，文件不出电脑</span>
+      <span style="color:var(--faint)">·</span>
+      <span>人声降噪 + 响度标准化，直接出抖音可发版本</span>
+    </div>
+  </header>
+
+  <!-- 1. 选择文件 -->
+  <div class="card">
+    <div class="card-head"><span><span class="n">1</span>选择音频</span>
+      <span class="hint">WAV / MP3 / M4A / FLAC / 也能直接丢 MP4 抽音轨</span></div>
+    <div class="card-body">
+      <div id="drop">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"/><path d="M4 15v3a2 2 0 002 2h12a2 2 0 002-2v-3"/>
+        </svg>
+        <div class="t1">拖音频到这里，或点击选择</div>
+        <div class="t2">支持 wav / mp3 / m4a / flac / aac / ogg，也支持 mp4 等视频（自动抽音轨）</div>
+        <div class="t3">单个文件最大 400MB</div>
+        <input type="file" id="fileInput" hidden
+               accept="audio/*,video/*,.wav,.mp3,.m4a,.flac,.aac,.ogg,.opus,.aiff,.mp4,.mov,.mkv,.webm">
+      </div>
+      <div id="chipBox" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- 2. 参数 -->
+  <div class="card" id="optCard" style="display:none">
+    <div class="card-head"><span><span class="n">2</span>处理参数</span>
+      <span class="hint">默认值已经适合绝大多数口播和唱歌素材</span></div>
+    <div class="card-body">
+
+      <div class="row">
+        <div class="rlabel">
+          <div class="l1">降噪强度</div>
+          <div class="l2">压制底噪、电流声、房间嗡嗡声</div>
+        </div>
+        <div class="rctl">
+          <div class="seg" id="segDenoise">
+            <button data-v="off">关闭</button>
+            <button data-v="light">轻</button>
+            <button data-v="medium" class="on">中</button>
+            <button data-v="strong">强</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="rlabel">
+          <div class="l1">附加处理</div>
+          <div class="l2">按需要开，不是越多越好</div>
+        </div>
+        <div class="rctl">
+          <div class="switches">
+            <label class="sw on" data-key="highpass">
+              <input type="checkbox" checked><span class="knob"></span>
+              <span class="sl">去低频隆隆声</span>
+            </label>
+            <label class="sw" data-key="deesser">
+              <input type="checkbox"><span class="knob"></span>
+              <span class="sl">齿音柔化</span>
+            </label>
+            <label class="sw" data-key="compress">
+              <input type="checkbox"><span class="knob"></span>
+              <span class="sl">动态压缩（声音更贴耳）</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="rlabel">
+          <div class="l1">目标响度</div>
+          <div class="l2">抖音等短视频平台通用标准是 -14 LUFS</div>
+        </div>
+        <div class="rctl">
+          <div class="slider">
+            <input type="range" id="lufs" min="-20" max="-9" step="0.5" value="-14">
+            <span class="lufsval" id="lufsVal">-14.0 LUFS</span>
+          </div>
+          <div class="scalehint">越靠右声音越响、越容易被平台二次压缩；-14 最稳妥</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="rlabel">
+          <div class="l1">输出格式</div>
+          <div class="l2" id="fmtHint">抖音投稿建议 M4A 或 MP3</div>
+        </div>
+        <div class="rctl" id="fmtCtl">
+          <div class="seg" id="segFormat">
+            <button data-v="m4a" class="on">M4A (AAC 256k)</button>
+            <button data-v="mp3">MP3 320k</button>
+            <button data-v="wav">WAV 无损</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 3. 原声 -->
+  <div class="card" id="origCard" style="display:none">
+    <div class="card-head"><span><span class="n">3</span>原声试听</span>
+      <span class="hint">先听一遍，记住噪音长什么样，方便对比</span></div>
+    <div class="card-body" id="origBody"></div>
+  </div>
+
+  <!-- 4. 执行 -->
+  <div class="card" id="runCard" style="display:none">
+    <div class="card-head"><span><span class="n">4</span>开始处理</span>
+      <span class="hint" id="runHint">两遍响度分析，处理完自动对比</span></div>
+    <div class="card-body">
+      <div class="actions">
+        <button class="primary" id="runBtn"><span class="spin"></span><span id="runLabel">开始处理</span></button>
+        <span class="status" id="status"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 结果 -->
+  <div class="card" id="result">
+    <div class="card-head"><span><span class="n">5</span>处理结果</span>
+      <span class="hint">A/B 对比，满意再下载</span></div>
+    <div class="card-body">
+      <div id="resultBody"></div>
+      <div class="stats" id="stats"></div>
+      <div class="dlrow">
+        <a class="dl" id="dlBtn" href="#" download>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/>
+          </svg>
+          下载成品
+        </a>
+        <span class="status" id="dlHint"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>抖音音频规格参考</b>
+    <ul>
+      <li>响度：<b>-14 LUFS</b> 左右（平台会做归一化，做过头会被压回去，白费力气）</li>
+      <li>真峰值：不超过 <b>-1.0 dBTP</b>，本工具默认 -1.5，留足余量防削波</li>
+      <li>采样率：<b>44100 Hz</b>，立体声 —— 导出时已统一</li>
+      <li>降噪档位先从「中」试；如果人声发闷、发哑，说明降太狠了，退回「轻」</li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  var $ = function(s){ return document.querySelector(s); };
+
+  /* ------------------------------- 状态 ------------------------------- */
+  var state = {
+    file: null,
+    srcPeaks: null,
+    srcDuration: 0,
+    isVideo: false,
+    busy: false
+  };
+  var opts = { denoise:'medium', highpass:true, deesser:false, compress:false, lufs:-14, format:'m4a' };
+
+  /* ------------------------------- 工具 ------------------------------- */
+  function fmtSize(b){
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b/1024).toFixed(0) + ' KB';
+    return (b/1048576).toFixed(1) + ' MB';
+  }
+  function fmtTime(s){
+    if (!isFinite(s) || s < 0) s = 0;
+    var m = Math.floor(s/60), x = Math.floor(s%60);
+    return m + ':' + (x<10?'0':'') + x;
+  }
+  var toastTimer = null;
+  function toast(msg){
+    var t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 3200);
+  }
+
+  /* ------------------------------- 波形 ------------------------------- */
+  var audioCtx = null;
+  function getCtx(){
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  function computePeaks(channel, buckets){
+    var step = Math.max(1, Math.floor(channel.length / buckets));
+    var peaks = new Array(buckets);
+    for (var i=0;i<buckets;i++){
+      var s = i*step, e = Math.min(s+step, channel.length);
+      var mn = 1, mx = -1;
+      for (var j=s;j<e;j++){
+        var v = channel[j];
+        if (v < mn) mn = v;
+        if (v > mx) mx = v;
+      }
+      if (mn > mx){ mn = 0; mx = 0; }
+      peaks[i] = [mn, mx];
+    }
+    return peaks;
+  }
+
+  function fit(cv){
+    var r = cv.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    cv.width = Math.max(1, Math.round(r.width * dpr));
+    cv.height = Math.max(1, Math.round(r.height * dpr));
+    var ctx = cv.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return { ctx: ctx, w: r.width, h: r.height };
+  }
+
+  function paint(cv, peaks, color){
+    var f = fit(cv), ctx = f.ctx, w = f.w, h = f.h;
+    ctx.clearRect(0,0,w,h);
+    if (!peaks || !peaks.length){
+      ctx.fillStyle = '#eef0f4';
+      ctx.fillRect(0, h/2 - 1, w, 2);
+      return;
+    }
+    // 中线
+    ctx.fillStyle = '#f0f2f6';
+    ctx.fillRect(0, h/2 - 0.5, w, 1);
+
+    var mid = h/2, amp = mid * 0.9;
+    var bw = w / peaks.length;
+    ctx.fillStyle = color;
+    for (var i=0;i<peaks.length;i++){
+      var y1 = mid - peaks[i][1] * amp;
+      var y2 = mid - peaks[i][0] * amp;
+      ctx.fillRect(i*bw, y1, Math.max(bw*0.85, 1), Math.max(y2 - y1, 1));
+    }
+  }
+
+  /* ------------------------------- 播放器 ------------------------------- */
+  function makePlayer(host, tagText, isResult){
+    var el = document.createElement('div');
+    el.className = 'player' + (isResult ? ' is-result' : '');
+    el.innerHTML =
+      '<div class="phead">' +
+        '<span class="tag">' + tagText + '</span>' +
+        '<span class="pmeta"></span>' +
+      '</div>' +
+      '<div class="wavewrap"><canvas></canvas><div class="playhead"></div></div>' +
+      '<div class="pfoot">' +
+        '<button class="playbtn" disabled>' +
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>' +
+        '</button>' +
+        '<span class="ptime">0:00 / 0:00</span>' +
+        '<span class="pvol">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+            '<path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M16 9a4 4 0 010 6"/>' +
+          '</svg>' +
+          '<input type="range" min="0" max="1" step="0.01" value="1">' +
+        '</span>' +
+      '</div>';
+    host.appendChild(el);
+
+    var audio = new Audio();
+    audio.preload = 'metadata';
+    var cv = el.querySelector('canvas');
+    var wrap = el.querySelector('.wavewrap');
+    var head = el.querySelector('.playhead');
+    var btn = el.querySelector('.playbtn');
+    var time = el.querySelector('.ptime');
+    var meta = el.querySelector('.pmeta');
+    var vol = el.querySelector('input[type=range]');
+    var raf = null;
+
+    function icon(playing){
+      btn.innerHTML = playing
+        ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5" width="3.6" height="14" rx="1"/><rect x="13.9" y="5" width="3.6" height="14" rx="1"/></svg>'
+        : '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>';
+    }
+
+    function tick(){
+      var d = audio.duration || 0;
+      var p = d ? audio.currentTime / d : 0;
+      head.style.left = (p * 100) + '%';
+      time.textContent = fmtTime(audio.currentTime) + ' / ' + fmtTime(d);
+      raf = requestAnimationFrame(tick);
+    }
+
+    btn.addEventListener('click', function(){
+      if (audio.paused){
+        audio.play().catch(function(e){ toast('播放失败：' + e.message); });
+      } else {
+        audio.pause();
+      }
+    });
+    audio.addEventListener('play', function(){ el.classList.add('playing'); icon(true); tick(); });
+    audio.addEventListener('pause', function(){ el.classList.remove('playing'); icon(false); cancelAnimationFrame(raf); });
+    audio.addEventListener('ended', function(){ el.classList.remove('playing'); icon(false); cancelAnimationFrame(raf); head.style.left='0%'; });
+    audio.addEventListener('loadedmetadata', function(){
+      time.textContent = '0:00 / ' + fmtTime(audio.duration);
+      btn.disabled = false;
+    });
+    audio.addEventListener('error', function(){
+      btn.disabled = true;
+      meta.textContent = '无法加载音频';
+    });
+    vol.addEventListener('input', function(){ audio.volume = parseFloat(vol.value); });
+    wrap.addEventListener('click', function(ev){
+      if (!audio.duration) return;
+      var r = wrap.getBoundingClientRect();
+      var p = Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width));
+      audio.currentTime = p * audio.duration;
+      head.style.left = (p*100) + '%';
+    });
+    window.addEventListener('resize', function(){
+      paint(cv, cv.__peaks, cv.__color || '#c8ccd6');
+    });
+
+    return {
+      el: el,
+      audio: audio,
+      setMeta: function(t){ meta.textContent = t; },
+      setPeaks: function(peaks, color){
+        cv.__peaks = peaks; cv.__color = color;
+        paint(cv, peaks, color);
+      },
+      load: function(url, peaks, color, metaText){
+        audio.src = url;
+        if (metaText) meta.textContent = metaText;
+        if (peaks) { cv.__peaks = peaks; cv.__color = color; paint(cv, peaks, color); }
+      }
+    };
+  }
+
+  /* ------------------------------- 解码画波形 ------------------------------- */
+  function decodeWave(url, cb){
+    fetch(url).then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.arrayBuffer();
+    }).then(function(ab){
+      return getCtx().decodeAudioData(ab);
+    }).then(function(buf){
+      var ch = buf.getChannelData(0);
+      var cvw = document.querySelector('#origBody .wavewrap canvas');
+      var buckets = cvw ? Math.max(200, Math.round(cvw.getBoundingClientRect().width)) : 600;
+      var peaks = computePeaks(ch, buckets);
+      cb(null, peaks, buf.duration);
+    }).catch(function(e){
+      cb(e, null, 0);
+    });
+  }
+
+  /* ------------------------------- 选择文件 ------------------------------- */
+  var drop = $('#drop'), fileInput = $('#fileInput');
+
+  drop.addEventListener('click', function(){ fileInput.click(); });
+  fileInput.addEventListener('change', function(){
+    if (fileInput.files && fileInput.files[0]) accept(fileInput.files[0]);
+    fileInput.value = '';
+  });
+  ['dragenter','dragover'].forEach(function(t){
+    drop.addEventListener(t, function(e){ e.preventDefault(); drop.classList.add('over'); });
+  });
+  ['dragleave','drop'].forEach(function(t){
+    drop.addEventListener(t, function(e){ e.preventDefault(); drop.classList.remove('over'); });
+  });
+  drop.addEventListener('drop', function(e){
+    var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) accept(f);
+  });
+
+  var currentOrigPlayer = null;
+
+  function accept(file){
+    if (state.busy) { toast('正在处理，请稍等'); return; }
+    if (file.size > 400*1024*1024) { toast('文件超过 400MB'); return; }
+
+    var ext = (file.name.split('.').pop() || '').toLowerCase();
+    var isVideo = VIDEO_EXT.indexOf(ext) >= 0;
+
+    state.file = file;
+    state.srcPeaks = null;
+    state.isVideo = isVideo;
+    renderFormatCtl(isVideo);
+
+    // 文件条
+    var chipBox = $('#chipBox');
+    chipBox.style.display = 'block';
+    chipBox.innerHTML =
+      '<div class="chip">' +
+        '<div class="ficon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+          '<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></div>' +
+        '<div class="grow"><div class="fname"></div><div class="fmeta"></div></div>' +
+        '<button class="linkbtn" id="clearBtn">换一个</button>' +
+      '</div>';
+    chipBox.querySelector('.fname').textContent = file.name;
+    chipBox.querySelector('.fmeta').textContent = fmtSize(file.size) + ' · ' + (file.type || '未知类型');
+    chipBox.querySelector('#clearBtn').addEventListener('click', reset);
+
+    // 展开后续步骤
+    $('#optCard').style.display = 'block';
+    $('#origCard').style.display = 'block';
+    $('#runCard').style.display = 'block';
+    $('#result').classList.remove('show');
+    $('#runBtn').disabled = false;
+    $('#runLabel').textContent = '开始处理';
+    $('#status').textContent = '';
+    $('#status').className = 'status';
+
+    // 原声播放器（视频用 <video>，音频用波形播放器）
+    var body = $('#origBody');
+    body.innerHTML = '';
+    var objUrl = URL.createObjectURL(file);
+
+    if (isVideo){
+      var wrap = document.createElement('div');
+      wrap.className = 'player';
+      wrap.innerHTML =
+        '<div class="phead"><span class="tag">原声</span>' +
+        '<span class="pmeta">' + fmtSize(file.size) + ' · 视频</span></div>' +
+        '<video controls preload="metadata" playsinline></video>';
+      body.appendChild(wrap);
+      var v = wrap.querySelector('video');
+      v.style.cssText = 'width:100%;display:block;background:#0b0d12;max-height:380px';
+      v.src = objUrl;
+      currentOrigPlayer = null;
+    } else {
+      var p = makePlayer(body, '原声', false);
+      p.load(objUrl, null, '#c8ccd6', '解析中…');
+      currentOrigPlayer = p;
+
+      decodeWave(objUrl, function(err, peaks, dur){
+        if (err){
+          p.setMeta(fmtSize(file.size) + ' · 波形不可预览');
+          return;
+        }
+        state.srcPeaks = peaks;
+        state.srcDuration = dur;
+        p.setPeaks(peaks, '#8f96a3');
+        p.setMeta(fmtSize(file.size) + ' · ' + fmtTime(dur));
+      });
+    }
+  }
+
+  function reset(){
+    if (state.busy) return;
+    state.file = null;
+    state.srcPeaks = null;
+    $('#chipBox').style.display = 'none';
+    $('#chipBox').innerHTML = '';
+    $('#optCard').style.display = 'none';
+    $('#origCard').style.display = 'none';
+    $('#runCard').style.display = 'none';
+    $('#result').classList.remove('show');
+    $('#origBody').innerHTML = '';
+    currentOrigPlayer = null;
+  }
+
+  /* ------------------------------- 参数交互 ------------------------------- */
+  function bindSeg(hostSel, key, parse){
+    var host = $(hostSel);
+    host.addEventListener('click', function(e){
+      var b = e.target.closest('button[data-v]');
+      if (!b) return;
+      host.querySelectorAll('button[data-v]').forEach(function(x){ x.classList.remove('on'); });
+      b.classList.add('on');
+      opts[key] = parse ? parse(b.dataset.v) : b.dataset.v;
+    });
+  }
+  bindSeg('#segDenoise', 'denoise');
+  // 绑在容器上：视频/音频两套输出选项动态替换后依然生效
+  bindSeg('#fmtCtl', 'format');
+
+  var VIDEO_EXT = ['mp4', 'mov', 'mkv', 'avi', 'm4v', 'webm'];
+
+  function renderFormatCtl(isVideo){
+    var ctl = $('#fmtCtl');
+    if (isVideo){
+      $('#fmtHint').textContent = '默认直接出视频：画面原样复制，只重做音轨';
+      ctl.innerHTML =
+        '<div class="seg" id="segFormat">' +
+          '<button data-v="video" class="on">视频（画面不动）</button>' +
+          '<button data-v="m4a">只要音频 M4A</button>' +
+          '<button data-v="mp3">只要音频 MP3</button>' +
+        '</div>';
+      opts.format = 'video';
+    } else {
+      $('#fmtHint').textContent = '抖音投稿建议 M4A 或 MP3';
+      ctl.innerHTML =
+        '<div class="seg" id="segFormat">' +
+          '<button data-v="m4a" class="on">M4A (AAC 256k)</button>' +
+          '<button data-v="mp3">MP3 320k</button>' +
+          '<button data-v="wav">WAV 无损</button>' +
+        '</div>';
+      opts.format = 'm4a';
+    }
+  }
+
+  document.querySelectorAll('.sw').forEach(function(sw){
+    sw.addEventListener('click', function(){
+      var input = sw.querySelector('input');
+      setTimeout(function(){
+        var on = input.checked;
+        sw.classList.toggle('on', on);
+        opts[sw.dataset.key] = on;
+      }, 0);
+    });
+  });
+
+  var lufsEl = $('#lufs');
+  lufsEl.addEventListener('input', function(){
+    var v = parseFloat(lufsEl.value);
+    opts.lufs = v;
+    $('#lufsVal').textContent = v.toFixed(1) + ' LUFS';
+  });
+
+  /* ------------------------------- 处理 ------------------------------- */
+  $('#runBtn').addEventListener('click', function(){
+    if (!state.file || state.busy) return;
+    state.busy = true;
+
+    var btn = $('#runBtn');
+    btn.classList.add('busy');
+    btn.disabled = true;
+    $('#runLabel').textContent = '处理中…';
+    $('#status').className = 'status';
+    $('#status').textContent = state.isVideo
+      ? '正在重做音轨（画面直接复制，不重编码），长视频要等一会'
+      : '正在分析响度并处理，长音频可能要等十几秒';
+    $('#result').classList.remove('show');
+
+    var q = new URLSearchParams({
+      name: state.file.name,
+      denoise: opts.denoise,
+      highpass: opts.highpass ? '1' : '0',
+      deesser: opts.deesser ? '1' : '0',
+      compress: opts.compress ? '1' : '0',
+      lufs: String(opts.lufs)
+    });
+    if (opts.format === 'video'){
+      q.set('outmode', 'video');
+    } else {
+      q.set('outmode', 'audio');
+      q.set('format', opts.format);
+    }
+
+    fetch('/api/process?' + q.toString(), { method:'POST', body: state.file })
+      .then(function(r){ return r.json().then(function(j){ return { ok:r.ok, j:j }; }); })
+      .then(function(res){
+        if (!res.j || !res.j.ok) throw new Error((res.j && res.j.error) || '处理失败');
+        showResult(res.j);
+      })
+      .catch(function(e){
+        $('#status').className = 'status err';
+        $('#status').textContent = '出错了：' + e.message;
+        toast('处理失败');
+      })
+      .finally(function(){
+        state.busy = false;
+        btn.classList.remove('busy');
+        btn.disabled = false;
+        $('#runLabel').textContent = '重新处理';
+      });
+  });
+
+  function showResult(data){
+    var body = $('#resultBody');
+    body.innerHTML = '';
+
+    if (data.is_video){
+      var wrap = document.createElement('div');
+      wrap.className = 'player is-result';
+      wrap.innerHTML =
+        '<div class="phead"><span class="tag">处理后</span>' +
+        '<span class="pmeta">画面原样保留 · 音轨已重做</span></div>' +
+        '<video controls preload="metadata" playsinline></video>';
+      body.appendChild(wrap);
+      var v = wrap.querySelector('video');
+      v.style.cssText = 'width:100%;display:block;background:#0b0d12;max-height:380px';
+      v.src = data.result.url;
+    } else {
+      var p = makePlayer(body, '处理后', true);
+      p.load(data.result.url, null, '#4f46e5', '生成中…');
+    }
+
+    $('#dlBtn').href = data.result.download;
+    $('#dlBtn').setAttribute('download', data.result.name);
+    $('#dlHint').textContent = data.result.name + ' · ' + fmtSize(data.result.size);
+    $('#status').textContent = '完成，用时 ' + data.cost + ' 秒';
+
+    var before = data.measured && data.measured.input_i ? parseFloat(data.measured.input_i) : null;
+    var stats = [];
+    if (before !== null && isFinite(before)){
+      stats.push(['处理前响度', before.toFixed(1) + ' <small>LUFS</small>']);
+      var delta = (opts.lufs - before);
+      stats.push(['响度变化', (delta>=0?'+':'') + delta.toFixed(1) + ' <small>dB</small>']);
+    }
+    stats.push(['处理后响度', opts.lufs.toFixed(1) + ' <small>LUFS</small>']);
+    stats.push(['时长', (data.result.duration ? fmtTime(data.result.duration) : '—')]);
+    stats.push(['采样率', (data.result.sample_rate || '44100') + ' <small>Hz</small>']);
+    stats.push(['文件大小', fmtSize(data.result.size)]);
+    if (data.is_video) stats.push(['画面', '原样复制']);
+
+    $('#stats').innerHTML = stats.map(function(s){
+      return '<div class="stat"><div class="k">' + s[0] + '</div><div class="v">' + s[1] + '</div></div>';
+    }).join('');
+
+    $('#result').classList.add('show');
+
+    if (!data.is_video){
+      decodeWave(data.result.url, function(err, peaks){
+        if (err){ p.setMeta('波形不可预览'); return; }
+        p.setPeaks(peaks, '#4f46e5');
+        p.setMeta(data.result.name + ' · ' + fmtSize(data.result.size));
+      });
+    }
+
+    $('#result').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+})();
+</script>
+</body>
+</html>

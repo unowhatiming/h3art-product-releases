@@ -1,0 +1,1147 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>摇滚人格测试 · ROCK PERSONALITY TEST</title>
+<meta name="description" content="24 道题，四组对立，十六种摇滚人格。取材于中国摇滚现场的人格测验。">
+<style>
+  :root{
+    --bg:#0a0a0b;
+    --ink:#f4f1ea;
+    --dim:#8b8b90;
+    --line:#242429;
+    --card:#101013;
+    --accent:#ff2b2b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,-apple-system,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    letter-spacing:.01em;
+  }
+  body::before{
+    content:"";position:fixed;inset:-20% -10% auto -10%;height:72vh;
+    background:radial-gradient(58% 58% at 50% 0%,rgba(255,43,43,.20),transparent 72%);
+    pointer-events:none;z-index:0;
+  }
+  .grain{
+    position:fixed;inset:0;pointer-events:none;z-index:40;opacity:.05;
+    background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.55) 0 1px,transparent 1px 3px);
+    mix-blend-mode:overlay;
+  }
+  main{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:44px 22px 90px}
+
+  /* ---------- screens ---------- */
+  .screen{display:none}
+  .screen.active{display:block;animation:fadeUp .5s cubic-bezier(.2,.7,.2,1) both}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  /* ---------- intro ---------- */
+  .kicker{font-size:11px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase;margin-bottom:20px}
+  .kicker b{color:var(--accent);font-weight:700}
+  h1.title{font-size:clamp(42px,9.6vw,88px);line-height:.94;margin:0 0 14px;font-weight:900;letter-spacing:-.025em}
+  .en{font-size:11px;letter-spacing:.42em;color:var(--dim);margin-bottom:34px}
+  .lead{font-size:16px;line-height:1.95;color:#c6c3bc;max-width:40em;margin:0}
+  .lead b{color:var(--ink);font-weight:700}
+  .lead strong{color:var(--accent);font-weight:800}
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin:26px 0 0}
+  .chips.sm{margin:18px 0 0}
+  .chip{font-size:12px;padding:7px 13px;border:1px solid var(--line);border-radius:999px;color:var(--dim);white-space:nowrap}
+  .chip.hot{color:var(--ink);border-color:#4a2a2c}
+
+  .axes{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);margin:34px 0 0}
+  .axis{background:var(--bg);padding:15px 18px;display:flex;justify-content:space-between;align-items:baseline;gap:16px;font-size:14px}
+  .axis .nm{color:var(--dim);font-size:11px;letter-spacing:.16em;white-space:nowrap}
+  .axis .poles{color:var(--ink);font-weight:700;text-align:right}
+  .axis .poles i{font-style:normal;color:#55555e;margin:0 9px;font-weight:400}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:10px;border:0;cursor:pointer;font:inherit;font-weight:800;
+    padding:17px 32px;background:var(--accent);color:#fff;border-radius:2px;letter-spacing:.08em;
+    transition:transform .16s,box-shadow .22s,background .22s;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(255,43,43,.26)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid #35353d}
+  .btn.ghost:hover{border-color:var(--ink);box-shadow:none}
+  .cta{margin:40px 0 0}
+
+  .foot{margin-top:64px;font-size:12px;line-height:2;color:#5c5c66;border-top:1px solid var(--line);padding-top:22px}
+  .foot b{color:#7d7d86;font-weight:600}
+
+  /* ---------- quiz ---------- */
+  .qwrap{animation:fadeUp .38s cubic-bezier(.2,.7,.2,1) both}
+  .qbar{display:flex;justify-content:space-between;align-items:center;gap:14px;font-size:11px;letter-spacing:.2em;color:var(--dim);margin-bottom:14px;text-transform:uppercase}
+  .qbar .clock{font-variant-numeric:tabular-nums;color:#6b6b74;letter-spacing:.1em}
+  .track{height:3px;background:#1b1b20;position:relative;overflow:hidden;margin-bottom:48px}
+  .track i{position:absolute;inset:0 auto 0 0;background:var(--accent);transition:width .4s cubic-bezier(.2,.8,.2,1)}
+  .qtext{font-size:clamp(21px,4.3vw,33px);line-height:1.55;font-weight:800;margin:0 0 32px;letter-spacing:-.012em}
+  .opts{display:grid;gap:12px}
+  .opt{
+    display:flex;gap:15px;align-items:flex-start;text-align:left;width:100%;
+    background:#111114;border:1px solid #26262d;color:var(--ink);padding:20px 22px;border-radius:3px;
+    cursor:pointer;font:inherit;font-size:16px;line-height:1.7;transition:border-color .18s,background .18s,transform .18s;
+  }
+  .opt:hover{border-color:#5e5e6b;background:#17171c;transform:translateX(3px)}
+  .opt .k{
+    flex:0 0 auto;width:26px;height:26px;border:1px solid #3b3b45;border-radius:999px;
+    display:grid;place-items:center;font-size:12px;color:var(--dim);margin-top:1px;transition:.18s;
+  }
+  .opt:hover .k{border-color:var(--accent);color:var(--accent)}
+  .opt.sel{border-color:var(--accent);background:#1c1215}
+  .opt.sel .k{border-color:var(--accent);color:#fff;background:var(--accent)}
+  .hint{margin-top:28px;font-size:12px;color:#5c5c66;letter-spacing:.04em}
+  .back{background:none;border:0;color:var(--dim);font:inherit;font-size:13px;cursor:pointer;margin-top:16px;padding:0;transition:color .18s}
+  .back:hover{color:var(--ink)}
+
+  /* ---------- result ---------- */
+  .res-head{position:relative;padding-bottom:30px;border-bottom:1px solid var(--line)}
+  .wm{
+    position:absolute;top:-46px;right:-6px;font-size:clamp(110px,28vw,230px);font-weight:900;
+    letter-spacing:-.06em;line-height:.8;color:rgba(255,255,255,.035);pointer-events:none;user-select:none;
+  }
+  .res-head > *{position:relative}
+  .code{display:flex;font-size:clamp(50px,13vw,98px);font-weight:900;line-height:1;letter-spacing:-.03em;margin:4px 0 12px}
+  .code span{display:block}
+  .code span:last-child{color:var(--accent)}
+  .tname{font-size:clamp(25px,5.4vw,42px);font-weight:900;margin:0 0 4px;letter-spacing:-.01em}
+  .tagline{margin:20px 0 0;font-size:17px;line-height:1.85;color:#d8d5ce;border-left:3px solid var(--accent);padding-left:16px}
+
+  .meta{margin:16px 0 0;font-size:13px;color:var(--dim);letter-spacing:.04em}
+  .meta b{color:var(--ink);font-weight:800}
+
+  .traits{list-style:none;padding:0;margin:24px 0 0;display:flex;flex-wrap:wrap;gap:8px}
+  .traits li{font-size:13px;padding:6px 13px;border:1px solid #2c2c35;border-radius:999px;color:#c9c6c0}
+
+  .reveal{animation:fadeUp .5s cubic-bezier(.2,.7,.2,1) both}
+
+  .sect{margin:44px 0 0}
+  .sect > h3{font-size:11px;letter-spacing:.26em;color:var(--dim);text-transform:uppercase;margin:0 0 18px;font-weight:700}
+
+  .dim{margin-bottom:20px}
+  .dim .lbl{display:flex;justify-content:space-between;font-size:13px;color:var(--dim);margin-bottom:9px;letter-spacing:.04em}
+  .dim .lbl .win{color:var(--ink);font-weight:800}
+  .bar{height:8px;display:flex;background:#1a1a1f;border-radius:2px;overflow:hidden}
+  .bar i{display:block;animation:grow .9s cubic-bezier(.2,.8,.2,1) both}
+  .bar i.a{background:var(--accent);animation-delay:.12s}
+  .bar i.b{background:#3c3c46;animation-delay:.12s}
+  @keyframes grow{from{width:0}to{width:var(--w)}}
+  .dname{font-size:12px;color:#5c5c66;margin-top:8px;letter-spacing:.04em}
+  .dname em{font-style:normal;color:var(--accent)}
+
+  .cards{display:grid;grid-template-columns:1fr;gap:12px}
+  .card{background:var(--card);border:1px solid #202027;padding:20px 22px;border-radius:3px}
+  .card h3{margin:0 0 10px;font-size:10px;letter-spacing:.24em;color:var(--accent);text-transform:uppercase;font-weight:800}
+  .card p{margin:0;font-size:15px;line-height:1.8;color:#cdcac4}
+
+  .quote{margin:0;padding:24px 26px;border-left:3px solid var(--accent);background:linear-gradient(90deg,rgba(255,43,43,.07),transparent 62%)}
+  .quote p{margin:0;font-size:19px;line-height:1.75;font-weight:800}
+  .quote span{display:block;margin-top:10px;font-size:12px;color:var(--dim);letter-spacing:.08em}
+
+  .match{display:grid;grid-template-columns:1fr;gap:12px}
+  .match .m{border:1px solid #202027;padding:16px 18px;border-radius:3px;background:var(--card)}
+  .match .m h4{margin:0 0 8px;font-size:10px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase;font-weight:800}
+  .match .m p{margin:0;font-size:15px;line-height:1.7}
+  .match .m p b{color:var(--accent)}
+
+  .poster-wrap{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+  .poster-img{width:100%;max-width:320px;display:block;border:1px solid #2a2a32;border-radius:3px;background:#0a0a0b}
+  .poster-side{flex:1 1 200px;min-width:180px}
+  .poster-side p{margin:0 0 14px;font-size:13px;line-height:1.9;color:#8b8b90}
+  .poster-actions{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+  .poster-actions .btn{padding:14px 22px;font-size:14px}
+  .size-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .size-btn{
+    font:inherit;font-size:12px;padding:8px 13px;border:1px solid #35353d;background:transparent;
+    color:var(--dim);border-radius:999px;cursor:pointer;transition:color .18s,border-color .18s,background .18s;
+  }
+  .size-btn:hover{color:var(--ink);border-color:#5e5e6b}
+  .size-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:800}
+
+  .songs{list-style:none;padding:0;margin:0;display:grid;gap:12px}
+  .songs li{display:flex;gap:16px;align-items:baseline;border-bottom:1px dashed #26262d;padding-bottom:12px;font-size:16px;color:#d8d5ce}
+  .songs li:last-child{border-bottom:0;padding-bottom:0}
+  .songs li b{flex:0 0 auto;color:var(--accent);font-size:11px;letter-spacing:.14em;font-weight:800}
+
+  .card-wrap{display:flex;flex-wrap:wrap;gap:26px;align-items:center;background:var(--card);border:1px solid #202027;padding:24px;border-radius:3px}
+  .radar{flex:1 1 260px;max-width:320px;min-width:220px}
+  .card-meta{flex:1 1 220px;min-width:200px}
+  .code.sm{font-size:clamp(30px,7vw,40px);margin:0 0 6px;letter-spacing:-.02em}
+  .ct-name{margin:0 0 8px;font-size:20px;font-weight:800}
+  .ct-line{margin:0 0 14px;font-size:13px;color:var(--dim);letter-spacing:.02em}
+  .ct-note{margin:0;font-size:12px;line-height:1.9;color:#5c5c66}
+
+  .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:44px}
+  @media(min-width:700px){
+    .cards{grid-template-columns:1fr 1fr}
+    .match{grid-template-columns:1fr 1fr}
+  }
+  @media(max-width:520px){
+    .axis{flex-direction:column;align-items:flex-start;gap:6px}
+    .axis .poles{text-align:left}
+    .qtext{margin-bottom:26px}
+    .opt{padding:17px 18px;font-size:15px}
+    main{padding:32px 18px 72px}
+    .qbar .brand{display:none}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:.001s!important;animation-delay:0s!important;transition-duration:.001s!important}
+  }
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<main id="app">
+  <section id="screen-intro" class="screen active">
+    <div class="kicker">参考 MBTI 四维 · <b>只问你这个人在生活里是什么样</b></div>
+    <h1 class="title">摇滚人格<br>测试</h1>
+    <div class="en">ROCK PERSONALITY TEST</div>
+
+    <p class="lead">
+      24 道题。四组对立。十六位中国摇滚乐手。
+      不问你会不会听摇滚，也不问你弹不弹琴——<b>只问你这个人在生活里怎么活</b>：
+      怎么跟人打交道、怎么处理冲突、怎么对待自己。
+      测完告诉你，你最像他们里的哪一位。
+      <strong>别端着。选你真正会做的那个，不是你会解释的那个。</strong>
+    </p>
+
+    <div class="chips">
+      <span class="chip hot">24 道题</span>
+      <span class="chip">问人不问乐理</span>
+      <span class="chip">全程计时</span>
+      <span class="chip">16 位乐手</span>
+    </div>
+
+    <div class="axes" id="axisLegend"></div>
+
+    <div class="cta">
+      <button class="btn" id="startBtn">开始测试 →</button>
+    </div>
+
+    <div class="foot">
+      <b>先把话说清楚</b><br>
+      1. 四维结构与类型代号借鉴 MBTI / SBTI 的人格测试传统，题目与文案为本测试原创。<br>
+      2. 出现的乐手仅作为某类人格的<b>「性格演绎」</b>，不代表其真实人格，也不构成任何艺术评价。<br>
+      3. 金句标注「本测试撰写」者为原创拟写；标注歌名者为歌词引用，版权归原作者所有。<br>
+      4. 每局题目顺序随机，结果不受顺序影响。纯娱乐，别拿它给自己下诊断。
+    </div>
+  </section>
+
+  <section id="screen-quiz" class="screen"></section>
+  <section id="screen-result" class="screen"></section>
+</main>
+
+<script>
+/* ========================================================================
+   CORE (data + scoring, DOM-free)
+   ======================================================================== */
+/*__CORE_START__*/
+const DIMS = [
+  { key:'EI', name:'能量方向', blurb:'你在哪儿充电，就在哪儿放电',
+    a:{letter:'E', label:'外放'}, b:{letter:'I', label:'内收'} },
+  { key:'SN', name:'感知方式', blurb:'你怎么接收这个世界',
+    a:{letter:'S', label:'现实'}, b:{letter:'N', label:'想象'} },
+  { key:'TF', name:'处理方式', blurb:'情绪来了，你拿它怎么办',
+    a:{letter:'T', label:'硬处理'}, b:{letter:'F', label:'软处理'} },
+  { key:'JP', name:'生活秩序', blurb:'你怎么把日子过成节奏',
+    a:{letter:'J', label:'编排'}, b:{letter:'P', label:'即兴'} }
+];
+
+const QUESTIONS = [
+  { dim:'EI', q:'一屋子你都不认识的人。',
+    a:{pole:'E', t:'二十分钟，我全混熟了'},
+    b:{pole:'I', t:'我找了最靠里的位置坐下'} },
+  { dim:'SN', q:'看完一部电影，你最先记住的是——',
+    a:{pole:'S', t:'具体的人、具体的场景'},
+    b:{pole:'N', t:'它到底想说什么'} },
+  { dim:'TF', q:'朋友做了一件明显不靠谱的事。',
+    a:{pole:'T', t:'我直接告诉他哪一步不对'},
+    b:{pole:'F', t:'我先陪他难受，再慢慢说'} },
+  { dim:'JP', q:'出门旅行。',
+    a:{pole:'J', t:'行程表、餐厅，都提前订好'},
+    b:{pole:'P', t:'到了再说'} },
+  { dim:'EI', q:'手机响了，陌生号码。',
+    a:{pole:'I', t:'让它响完，回头发消息问是谁'},
+    b:{pole:'E', t:'直接接'} },
+  { dim:'SN', q:'别人跟你讲一件事，你更容易记住——',
+    a:{pole:'N', t:'整件事到底对不对、有多不对'},
+    b:{pole:'S', t:'细节：几点、谁说了什么'} },
+  { dim:'TF', q:'你更受不了别人这样说你——',
+    a:{pole:'F', t:'「你太情绪化，不专业。」'},
+    b:{pole:'T', t:'「你太会算计，不真诚。」'} },
+  { dim:'JP', q:'你的房间。',
+    a:{pole:'P', t:'东西都在「随手能拿到」的位置'},
+    b:{pole:'J', t:'东西都有固定位置'} },
+  { dim:'EI', q:'一个周末，没人约你。',
+    a:{pole:'E', t:'你会主动找人，闲着难受'},
+    b:{pole:'I', t:'你松了口气，终于没人找你'} },
+  { dim:'SN', q:'你更烦哪一种人——',
+    a:{pole:'S', t:'满嘴概念，却说不清一件具体的事'},
+    b:{pole:'N', t:'只看表面，从不问为什么'} },
+  { dim:'TF', q:'一件重要的事被你搞砸了。',
+    a:{pole:'T', t:'先找原因：哪一步错了'},
+    b:{pole:'F', t:'先难受：觉得对不起大家'} },
+  { dim:'JP', q:'明天要早起。',
+    a:{pole:'J', t:'今晚就把衣服和包收拾好'},
+    b:{pole:'P', t:'明早起来再翻'} },
+  { dim:'EI', q:'刚确定一件好事。',
+    a:{pole:'I', t:'自己先消化几天'},
+    b:{pole:'E', t:'立刻告诉所有人'} },
+  { dim:'SN', q:'做决定时你更信——',
+    a:{pole:'N', t:'一种说不清、但很准的预感'},
+    b:{pole:'S', t:'具体的证据和先例'} },
+  { dim:'TF', q:'有人找你借一笔不小的钱。',
+    a:{pole:'F', t:'心里为难，但不好意思拒绝'},
+    b:{pole:'T', t:'先问用途，把还款时间说清楚'} },
+  { dim:'JP', q:'一份要交的活。',
+    a:{pole:'P', t:'最后一晚才真正进入状态'},
+    b:{pole:'J', t:'提前几天做完，最后一天只检查'} },
+  { dim:'EI', q:'聚餐散场了。',
+    a:{pole:'E', t:'还不想走，谁再续一场'},
+    b:{pole:'I', t:'心里已经在算打车时间'} },
+  { dim:'SN', q:'你更愿意聊——',
+    a:{pole:'S', t:'最近干了什么、吃了什么、见了谁'},
+    b:{pole:'N', t:'为什么会这样、以后会变成什么样'} },
+  { dim:'TF', q:'吵架之后——',
+    a:{pole:'T', t:'非把事情说明白，谁对谁错'},
+    b:{pole:'F', t:'只想关系先和好，对错不重要'} },
+  { dim:'JP', q:'计划突然被改了。',
+    a:{pole:'J', t:'我会烦躁，得重新排一遍'},
+    b:{pole:'P', t:'无所谓，反正也没几次完全按计划走过'} },
+  { dim:'EI', q:'排队排了四十分钟，队伍不动了。',
+    a:{pole:'I', t:'继续站着，心里默算还要多久'},
+    b:{pole:'E', t:'去问工作人员到底怎么回事'} },
+  { dim:'SN', q:'无聊的时候你在干嘛？',
+    a:{pole:'N', t:'发呆。脑子里在放另一部电影。'},
+    b:{pole:'S', t:'找点具体的事做：收拾、跑腿、看比赛'} },
+  { dim:'TF', q:'你做的决定通常是——',
+    a:{pole:'F', t:'心里舒服就定了'},
+    b:{pole:'T', t:'把利弊想清楚再定'} },
+  { dim:'JP', q:'你的手机待办和相册。',
+    a:{pole:'P', t:'一堆过期的事，照片随手存'},
+    b:{pole:'J', t:'分类、清单、该删的早删了'} }
+];
+
+const TYPES = {
+  ESTJ: {
+    name:'装甲教父', star:'崔健', song:'《一无所有》', rarity:8,
+    songs:['《一无所有》','《新长征路上的摇滚》','《红旗下的蛋》'],
+    tagline:'我不表达。我宣布。',
+    traits:['先干，再想','把混乱排成流程','骂你就是爱你'],
+    talent:'场面塌掉一半，你还能把它撑完，顺手把所有人骂醒。',
+    landmine:'没想清楚就先感动的人。你一看见就想关灯。',
+    band:'一群人里，你是先说「这事怎么弄」的那个。别人还在互相看，你已经开始分工。',
+    love:'不太会说。但你家所有坏掉的东西都能修。',
+    quote:'先把麦修好，再谈理想。', quoteSrc:'本测试撰写的类型金句',
+    best:'INFP', clash:'ENTP'
+  },
+  ESTP: {
+    name:'跑调大王', star:'左小祖咒', song:'《我不能悲伤地坐在你身旁》', rarity:4,
+    songs:['《我不能悲伤地坐在你身旁》','《乌兰巴托的夜》','《爱情的枪》'],
+    tagline:'我故意唱歪。正的都被人唱过了。',
+    traits:['现场第一','不怕丢人','一句怪话顶一张专辑'],
+    talent:'什么场子都能变成你的场。你不需要准备，只需要开口。',
+    landmine:'流程、审批，以及「我们先开个会」。',
+    band:'你一进门，气氛就变了。你不需要被介绍，你自己会把人记住。',
+    love:'嘴上没一句正经的。但她所有毛病你都记得。',
+    quote:'走调是我的调。', quoteSrc:'本测试撰写的类型金句',
+    best:'ISFJ', clash:'ISTJ'
+  },
+  ESFJ: {
+    name:'阳光发电机', star:'彭坦（达达乐队）', song:'《南方》', rarity:7,
+    songs:['《南方》','《我的天使》','《午夜飞行》'],
+    tagline:'一场好演出能治好一个人。你信这个。',
+    traits:['管全场情绪','记性好','干没人看见的活'],
+    talent:'情绪劳动干到大师级。你是一屋子人的温度计。',
+    landmine:'被冷落、被已读不回、被一句「随便」打回原形。',
+    band:'谁不高兴，你第一个发现。散场之后，收拾残局的多半也是你。',
+    love:'纪念日一个不落，还顺手写首歌。',
+    quote:'别急着走。还没唱完。', quoteSrc:'本测试撰写的类型金句',
+    best:'ISTP', clash:'ENTP'
+  },
+  ESFP: {
+    name:'蹦迪之王', star:'彭磊（新裤子）', song:'《你要跳舞吗》', rarity:6,
+    songs:['《你要跳舞吗》','《没有理想的人不伤心》','《生活因你而火热》'],
+    tagline:'我的人生是 4/4 拍，然后往上蹦。',
+    traits:['快乐即兴','不装','把「不会唱」干成一个流派'],
+    talent:'全场忘记自己是谁。包括你。',
+    landmine:'深刻、严肃、超过六分钟的器乐段落。',
+    band:'冷场到你这儿，三句话就热了。你走的时候，大家都在笑。',
+    love:'情话全是现挂。每次都恰好戳中。',
+    quote:'来，跳。', quoteSrc:'本测试撰写的类型金句',
+    best:'INTJ', clash:'ISTJ'
+  },
+  ENTJ: {
+    name:'高音统帅', star:'丁武（唐朝乐队）', song:'《梦回唐朝》', rarity:3,
+    songs:['《梦回唐朝》','《国际歌》','《太阳》'],
+    tagline:'我不要好听。我要人站起来。',
+    traits:['目标焊死','大剧场审美','不怕拍板'],
+    talent:'把一群人拖到他们没想过的高度，还不丢那股狠劲。',
+    landmine:'低效的浪漫。以及「反正差不多」。',
+    band:'你把人往更大的目标上推。跟不上的人你会等，但不会等太久。',
+    love:'会把她写进史诗。然后忘记回消息。',
+    quote:'音量再推一格。', quoteSrc:'本测试撰写的类型金句',
+    best:'ISFP', clash:'INFP'
+  },
+  ENTP: {
+    name:'大花轿哲学家', star:'梁龙（二手玫瑰）', song:'《仙儿》', rarity:5,
+    songs:['《仙儿》','《火车快开》','《采花》'],
+    tagline:'我什么都懂。所以我什么都不好好说。',
+    traits:['反讽是母语','越土越先锋','梗比歌多'],
+    talent:'用玩笑说真话。用红配绿说先锋。',
+    landmine:'无聊、重复，以及「你能不能正经一点」。',
+    band:'你先拆台，再救场。都是你干的，你也懒得解释。',
+    love:'让人笑一整晚。深夜突然把人问住。',
+    quote:'这叫艺术。你不懂。', quoteSrc:'本测试撰写的类型金句',
+    best:'ISFJ', clash:'ESTJ'
+  },
+  ENFJ: {
+    name:'体育场布道家', star:'汪峰', song:'《存在》', rarity:6,
+    songs:['《存在》','《飞得更高》','《北京北京》'],
+    tagline:'我唱的不是歌。是判决书，也是慰问信。',
+    traits:['天生领袖','共情和感染力一起上','非要被听见'],
+    talent:'一句话，三万人同时开口。',
+    landmine:'「你不真诚」——这四个字够你失眠一年。',
+    band:'你是那个能把一群人说服的人。你说完，大家真的开始信了。',
+    love:'给对方写一整首歌。然后讲给所有人听。',
+    quote:'你要存在，就得先被听见。', quoteSrc:'本测试撰写的类型金句',
+    best:'INTP', clash:'ISTP'
+  },
+  ENFP: {
+    name:'垃圾场的火', star:'何勇', song:'《垃圾场》', rarity:12,
+    songs:['《垃圾场》','《姑娘漂亮》','《钟鼓楼》'],
+    tagline:'我的真诚太烫。你拿不住。',
+    traits:['情绪浓度爆表','现场炸药','理想主义到自伤'],
+    talent:'一句话能把整个房间点着。你要么点燃，要么烧到自己。',
+    landmine:'被规训。被说「你先冷静一下」。',
+    band:'你是火花。也是那个让所有人又爱你、又怕你突然烧起来的人。',
+    love:'爱到不留退路。然后连对方一起烧。',
+    quote:'我们生活的世界，就像一个垃圾场。', quoteSrc:'何勇《垃圾场》',
+    best:'ISTJ', clash:'ESTJ'
+  },
+  ISTJ: {
+    name:'长夜工匠', star:'欧波（声音玩具）', song:'《爱是昂贵的》', rarity:8,
+    songs:['《爱是昂贵的》','《秘密的爱》','《你的城市》'],
+    tagline:'一首歌磨十年。因为第一年不够准。',
+    traits:['慢，但稳','细节控','不解释'],
+    talent:'一件事交到你手上，就不会出错。慢，但一次到位。',
+    landmine:'赶工、敷衍，以及「差不多就行」。',
+    band:'你不说话，但你是唯一记得所有细节的人。最后一句话通常由你说。',
+    love:'不说爱。但你记得她不吃香菜，记了十二年。',
+    quote:'再来一遍。', quoteSrc:'本测试撰写的类型金句',
+    best:'ENFP', clash:'ESTP'
+  },
+  ISTP: {
+    name:'现实主义刀客', star:'李志', song:'《关于郑州的记忆》', rarity:7,
+    songs:['《关于郑州的记忆》','《梵高先生》','《你离开了南京，从此没有人和我说话》'],
+    tagline:'我不喊口号。我把账算清楚。',
+    traits:['冷眼','说真话','不接神坛的招'],
+    talent:'一眼看到底。血流干了也不喊。',
+    landmine:'虚伪、溢美，以及被架上神坛。',
+    band:'你是唯一敢在会上说「这不行」的人。说完就安静了。',
+    love:'嘴上刻薄。行动上极稳。',
+    quote:'别把我当圣人。我就是个唱歌的。', quoteSrc:'本测试撰写的类型金句',
+    best:'ESFJ', clash:'ENFJ'
+  },
+  ISFJ: {
+    name:'草原守夜人', star:'杭盖乐队', song:'《轮回》', rarity:6,
+    songs:['《轮回》','《酒歌》','《杭盖》'],
+    tagline:'我不表演根源。我就是根源。',
+    traits:['护着所有人','认传统','闷头把活干完'],
+    talent:'抱住一群人。你能让所有人觉得自己属于这儿。',
+    landmine:'被连根拔起。以及「洋气一点」。',
+    band:'你把人聚到一张桌边，替所有人挡着，还不邀功。',
+    love:'不说情话。直接领回家吃饭。',
+    quote:'先坐下。吃完再说。', quoteSrc:'本测试撰写的类型金句',
+    best:'ENTP', clash:'ESTP'
+  },
+  ISFP: {
+    name:'赤裸修行者', star:'郑钧', song:'《回到拉萨》', rarity:7,
+    songs:['《回到拉萨》','《赤裸裸》','《灰姑娘》'],
+    tagline:'我一边骂这世界。一边给它让座。',
+    traits:['直觉式真诚','松','底线低，但一定有'],
+    talent:'不用力也有质感。你什么都不说，别人也认得出你的味道。',
+    landmine:'被逼表态。被拉进任何一场站队。',
+    band:'你站在边上，不争。但真需要人的时候，你一个人就能顶上。',
+    love:'爱得很安静。为她彻底戒掉一件事。',
+    quote:'我也就这样了。', quoteSrc:'本测试撰写的类型金句',
+    best:'ENTJ', clash:'ESTJ'
+  },
+  INTJ: {
+    name:'工业诗人', star:'姬赓 / 董亚千（万能青年旅店）', song:'《秦皇岛》', rarity:3,
+    songs:['《秦皇岛》','《杀死那个石家庄人》','《揪心的玩笑与漫长的白日梦》'],
+    tagline:'我写一首歌。也画一张图纸。',
+    traits:['长期主义','把时代写进空拍','不催更就不出声'],
+    talent:'你能替一个还没成形的未来定调。',
+    landmine:'被催更。以及「写得简单点」。',
+    band:'你先想清楚整个局，再开口。一开口就是定调。',
+    love:'歌里给对方留一个只有你们知道的空位。',
+    quote:'是谁来自山川湖海，却囿于昼夜、厨房与爱。', quoteSrc:'万青《揪心的玩笑与漫长的白日梦》',
+    best:'ESFP', clash:'ESFJ'
+  },
+  INTP: {
+    name:'雨中隐士', star:'窦唯', song:'《雨吁》', rarity:3,
+    songs:['《高级动物》','《明天更漫长》','《雨吁》'],
+    tagline:'我把话放进音色里。剩下的省了。',
+    traits:['极致自我诚实','实验','拒绝解释'],
+    talent:'别人还在争论答案，你已经在改题目。',
+    landmine:'采访、解释，以及「你再说一遍」。',
+    band:'你不太参与，但你看得比谁都清楚。你只是懒得说。',
+    love:'不太会经营。说过的每句都是真的。',
+    quote:'不解释。', quoteSrc:'本测试撰写的类型金句',
+    best:'ENFJ', clash:'ESFJ'
+  },
+  INFJ: {
+    name:'蓝莲花苦行僧', star:'许巍', song:'《蓝莲花》', rarity:4,
+    songs:['《蓝莲花》','《曾经的你》','《故乡》'],
+    tagline:'我的歌是绷带。给受伤的人。',
+    traits:['把痛翻译成希望','过度共情','自己扛'],
+    talent:'让人相信还能再走一段。',
+    landmine:'被消耗。被要求当所有人的救世主。',
+    band:'你挨个问「你还好吗」。你自己最难的那阵，没人知道。',
+    love:'把对方当成要用一生去理解的长期项目。',
+    quote:'没有什么能够阻挡。', quoteSrc:'许巍《蓝莲花》',
+    best:'ESTP', clash:'ESTJ'
+  },
+  INFP: {
+    name:'孤独的人', star:'张楚', song:'《姐姐》', rarity:11,
+    songs:['《姐姐》','《孤独的人是可耻的》','《蚂蚁蚂蚁》'],
+    tagline:'我把整个世界听进去了。然后说了句：我有点累。',
+    traits:['过度敏感','诗性表达','社交废'],
+    talent:'一句话，能让别人记你半辈子。',
+    landmine:'社交场。以及「你振作一点」。',
+    band:'你在人群里很安静。回去之后，每个人的表情你都记得。',
+    love:'连她沉默的缝隙你都听得见。',
+    quote:'这是一个恋爱的季节，孤独的人是可耻的。', quoteSrc:'张楚《孤独的人是可耻的》',
+    best:'ESTJ', clash:'ENTJ'
+  }
+};
+
+/* ---------- 题序随机 ---------- */
+function shuffleOrder(rng){
+  const r = rng || Math.random;
+  const a = QUESTIONS.map(function(_, i){ return i; });
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(r() * (i + 1));
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+/* 把「按出场位置记录的作答」还原成「按原始题号记录的作答」 */
+function mapAnswers(order, answers){
+  const out = new Array(QUESTIONS.length).fill(null);
+  order.forEach(function(qIdx, pos){ out[qIdx] = answers[pos] || null; });
+  return out;
+}
+
+function formatDuration(ms){
+  const total = Math.max(0, Math.round((ms || 0) / 1000));
+  const m = Math.floor(total / 60), s = total % 60;
+  return m > 0 ? (m + ' 分 ' + s + ' 秒') : (s + ' 秒');
+}
+
+/* 四维雷达：每条轴取「该维胜出那一极」的百分比 */
+function radarValues(dims){
+  return DIMS.map(function(d){
+    const v = dims[d.key];
+    const aWin = v.letter === d.a.letter;
+    return {
+      key: d.key,
+      name: d.name,
+      label: aWin ? d.a.label : d.b.label,
+      pct: aWin ? v.pctA : v.pctB
+    };
+  });
+}
+
+/* 海报三档尺寸 */
+const POSTER_SIZES = {
+  portrait: { key:'portrait', label:'竖版 4:5',  w:1080, h:1440, note:'小红书 / 朋友圈长图' },
+  square:   { key:'square',   label:'方图 1:1',  w:1080, h:1080, note:'朋友圈 / 微博九宫格' },
+  wide:     { key:'wide',     label:'横版 4:3',  w:1200, h:900,  note:'公众号头图 / 投屏' }
+};
+
+function score(answers){
+  const out = {};
+  DIMS.forEach(function(d){
+    let ca = 0, cb = 0, last = null;
+    QUESTIONS.forEach(function(q, i){
+      if (q.dim !== d.key) return;
+      const ans = answers[i];
+      if (!ans) return;
+      const pole = q[ans.toLowerCase()].pole;
+      if (pole === d.a.letter) ca++; else cb++;
+      last = pole;
+    });
+    let letter;
+    if (ca === cb) letter = last || d.a.letter;   // 同分时以该维度最后一题为准
+    else letter = ca > cb ? d.a.letter : d.b.letter;
+    const total = ca + cb;
+    const pctA = total ? Math.round(ca / total * 100) : 50;
+    out[d.key] = { a: ca, b: cb, letter: letter, pctA: pctA, pctB: 100 - pctA };
+  });
+  const code = DIMS.map(function(d){ return out[d.key].letter; }).join('');
+  return { code: code, dims: out, type: TYPES[code] };
+}
+
+function shareText(code, dims, meta){
+  const t = TYPES[code];
+  const lines = [
+    '我的摇滚人格：' + code + '「' + t.name + '」',
+    '代表人物：' + t.star + ' ' + t.song,
+    t.tagline,
+    DIMS.map(function(d){
+      return d.a.label + ' ' + dims[d.key].pctA + '% / ' + d.b.label + ' ' + dims[d.key].pctB + '%';
+    }).join('   ')
+  ];
+  if (meta && typeof meta.elapsedMs === 'number') lines.push('用时 ' + formatDuration(meta.elapsedMs));
+  lines.push('—— 摇滚人格测试 · ROCK PERSONALITY TEST');
+  return lines.join('\n');
+}
+/*__CORE_END__*/
+
+/* ========================================================================
+   UI
+   ======================================================================== */
+(function(){
+  const screens = {
+    intro: document.getElementById('screen-intro'),
+    quiz: document.getElementById('screen-quiz'),
+    result: document.getElementById('screen-result')
+  };
+  const state = {
+    idx: 0,
+    order: shuffleOrder(),
+    answers: [],
+    startedAt: 0,
+    timer: null
+  };
+  let locked = false;
+  let SCORE = null;
+  let LAST_META = null;
+
+  function show(name){
+    Object.keys(screens).forEach(function(k){
+      screens[k].classList.toggle('active', k === name);
+    });
+    window.scrollTo(0, 0);
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"]/g, function(c){
+      return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c];
+    });
+  }
+
+  const hasCanvas = (function(){
+    try {
+      const c = document.createElement('canvas');
+      return !!(c && typeof c.getContext === 'function' && c.getContext('2d'));
+    } catch (e){ return false; }
+  })();
+
+  /* ---------- 计时器 ---------- */
+  function elapsedMs(){ return Date.now() - state.startedAt; }
+
+  function clockText(){
+    const s = Math.floor(elapsedMs() / 1000);
+    return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  function tickClock(){
+    const el = screens.quiz.querySelector ? screens.quiz.querySelector('#clock') : null;
+    if (el) el.textContent = clockText();
+  }
+
+  function startClock(){
+    stopClock();
+    state.timer = setInterval(tickClock, 500);
+  }
+
+  function stopClock(){
+    if (state.timer !== null){ clearInterval(state.timer); state.timer = null; }
+  }
+
+  /* ---------- intro ---------- */
+  document.getElementById('axisLegend').innerHTML = DIMS.map(function(d){
+    return '<div class="axis">' +
+      '<span class="nm">' + escapeHtml(d.name) + '</span>' +
+      '<span class="poles">' + escapeHtml(d.a.label) + '<i>↔</i>' + escapeHtml(d.b.label) + '</span>' +
+    '</div>';
+  }).join('');
+
+  /* ---------- quiz ---------- */
+  function startRun(){
+    state.order = shuffleOrder();
+    state.answers = new Array(QUESTIONS.length).fill(null);
+    state.idx = 0;
+    state.startedAt = Date.now();
+    locked = false;
+    startClock();
+    renderQuestion();
+  }
+
+  function renderQuestion(){
+    const i = state.idx, T = QUESTIONS.length;
+    const q = QUESTIONS[state.order[i]];
+    const n = i + 1;
+    const prev = state.answers[i];
+    screens.quiz.innerHTML =
+      '<div class="qwrap">' +
+        '<div class="qbar">' +
+          '<span>' + String(n).padStart(2, '0') + ' / ' + T + '</span>' +
+          '<span class="brand">ROCK PERSONALITY · 中国摇滚版</span>' +
+          '<span class="clock" id="clock">' + clockText() + '</span>' +
+        '</div>' +
+        '<div class="track"><i style="width:' + (i / T * 100).toFixed(2) + '%"></i></div>' +
+        '<h2 class="qtext">' + escapeHtml(q.q) + '</h2>' +
+        '<div class="opts">' +
+          '<button class="opt' + (prev === 'A' ? ' sel' : '') + '" data-k="A">' +
+            '<span class="k">A</span><span>' + escapeHtml(q.a.t) + '</span></button>' +
+          '<button class="opt' + (prev === 'B' ? ' sel' : '') + '" data-k="B">' +
+            '<span class="k">B</span><span>' + escapeHtml(q.b.t) + '</span></button>' +
+        '</div>' +
+        '<div class="hint">点击选择 · 键盘 1 / 2 · 没有正确答案，只有你会不会</div>' +
+        (i > 0 ? '<button class="back" id="backBtn">← 上一题</button>' : '') +
+      '</div>';
+    show('quiz');
+  }
+
+  function pick(k){
+    if (locked) return;
+    locked = true;
+    state.answers[state.idx] = k;
+    const opts = screens.quiz.querySelectorAll('.opt');
+    for (let i = 0; i < opts.length; i++){
+      opts[i].classList.toggle('sel', opts[i].getAttribute('data-k') === k);
+    }
+    setTimeout(function(){
+      locked = false;
+      if (state.idx < QUESTIONS.length - 1){ state.idx++; renderQuestion(); }
+      else finish();
+    }, 200);
+  }
+
+  screens.quiz.addEventListener('click', function(e){
+    const opt = e.target && e.target.closest ? e.target.closest('.opt') : null;
+    if (opt){ pick(opt.getAttribute('data-k')); return; }
+    const back = e.target && e.target.closest ? e.target.closest('#backBtn') : null;
+    if (back && state.idx > 0){ state.idx--; renderQuestion(); }
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (!screens.quiz.classList.contains('active')) return;
+    const k = (e.key || '').toLowerCase();
+    if (k === '1' || k === 'a'){ pick('A'); }
+    else if (k === '2' || k === 'b'){ pick('B'); }
+    else if (e.key === 'ArrowLeft' && state.idx > 0){ state.idx--; renderQuestion(); }
+  });
+
+  /* ---------- 分享海报（Canvas，无依赖） ---------- */
+  function wrapLines(ctx, text, maxW){
+    const chars = String(text).split('');
+    const lines = [];
+    let line = '';
+    for (let i = 0; i < chars.length; i++){
+      const test = line + chars[i];
+      if (line && ctx.measureText(test).width > maxW){ lines.push(line); line = chars[i]; }
+      else line = test;
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  /* 三档版式的排版参数：portrait 竖版 / square 方图 / wide 横版（左文右条） */
+  function posterLayout(variant, W, H){
+    if (variant === 'wide'){
+      const M = 72;
+      const regionW = Math.round((W - M * 2) * 0.52);
+      return {
+        M: M, regionX: M, regionW: regionW,
+        top: 56, codeY: 150, codeSize: 176, nameY: 400, nameSize: 52, rarityY: 470, divY: 556,
+        barX: M + Math.round((W - M * 2) * 0.585), barRight: W - M, barTop: 150, barStep: 104, barOffset: 44, barFont: 28,
+        starY: 600, starSize: 30, tagY: 664, tagSize: 32, tagLineH: 44, tagW: W - M * 2 - 26,
+        footY: H - 62
+      };
+    }
+    if (variant === 'square'){
+      const M = 88;
+      return {
+        M: M, regionX: 0, regionW: W,
+        top: 72, codeY: 146, codeSize: 200, nameY: 398, nameSize: 58, rarityY: 532, divY: 584,
+        barX: M, barRight: W - M, barTop: 618, barStep: 74, barOffset: 42, barFont: 27,
+        starY: 486, starSize: 27, tagY: 912, tagSize: 32, tagLineH: 44, tagW: W - M * 2 - 26,
+        footY: H - 64
+      };
+    }
+    const M = 88;
+    return {
+      M: M, regionX: 0, regionW: W,
+      top: 92, codeY: 196, codeSize: 250, nameY: 512, nameSize: 70, rarityY: 676, divY: 754,
+      barX: M, barRight: W - M, barTop: 806, barStep: 96, barOffset: 50, barFont: 30,
+      starY: 620, starSize: 32, tagY: 1210, tagSize: 40, tagLineH: 58, tagW: W - M * 2 - 26,
+      footY: H - 86
+    };
+  }
+
+  function drawPoster(s, meta, variant){
+    const cfg = POSTER_SIZES[variant] || POSTER_SIZES.portrait;
+    const W = cfg.w, H = cfg.h;
+    const L = posterLayout(cfg.key, W, H);
+    const M = L.M;
+    const t = s.type;
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const x = c.getContext('2d');
+    const SANS = '"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif';
+    x.textBaseline = 'top';
+
+    /* 底 + 顶部红光 */
+    x.fillStyle = '#0a0a0b'; x.fillRect(0, 0, W, H);
+    const glow = x.createRadialGradient(W * .5, -120, 40, W * .5, -120, W * .9);
+    glow.addColorStop(0, 'rgba(255,43,43,0.26)');
+    glow.addColorStop(1, 'rgba(255,43,43,0)');
+    x.fillStyle = glow; x.fillRect(0, 0, W, H);
+
+    /* 扫描线 */
+    x.save(); x.globalAlpha = .05; x.fillStyle = '#ffffff';
+    for (let sy = 0; sy < H; sy += 3) x.fillRect(0, sy, W, 1);
+    x.restore();
+
+    /* 顶栏 */
+    x.font = '26px ' + SANS;
+    x.fillStyle = '#8b8b90'; x.textAlign = 'left';
+    x.fillText('ROCK PERSONALITY TEST', M, L.top);
+    x.fillStyle = '#ff2b2b'; x.textAlign = 'right';
+    x.fillText('中国摇滚版', W - M, L.top);
+    x.textAlign = 'left';
+    x.fillStyle = '#242429'; x.fillRect(M, L.top + 54, W - M * 2, 2);
+
+    /* 四字母代号（在左侧栏或整幅宽度内居中） */
+    const letters = s.code.split('');
+    x.font = '900 ' + L.codeSize + 'px ' + SANS;
+    const gap = -Math.round(L.codeSize * 0.05);
+    const widths = letters.map(function(ch){ return x.measureText(ch).width; });
+    const rowW = widths.reduce(function(a, b){ return a + b; }, 0) + gap * (letters.length - 1);
+    let cx = L.regionX + (L.regionW - rowW) / 2;
+    letters.forEach(function(ch, i){
+      x.fillStyle = (i === letters.length - 1) ? '#ff2b2b' : '#f4f1ea';
+      x.fillText(ch, cx, L.codeY);
+      cx += widths[i] + gap;
+    });
+
+    /* 类型名 / 稀有度 */
+    const cenX = L.regionX + L.regionW / 2;
+    x.textAlign = 'center';
+    x.fillStyle = '#f4f1ea'; x.font = '900 ' + L.nameSize + 'px ' + SANS;
+    x.fillText('「' + t.name + '」', cenX, L.nameY);
+    x.fillStyle = '#8b8b90'; x.font = Math.round(L.nameSize * 0.37) + 'px ' + SANS;
+    x.fillText('十六型之一 · 约 ' + t.rarity + '% 的答案组合', cenX, L.rarityY);
+    x.textAlign = 'left';
+
+    /* 乐手 + 作品（整幅居中；横版落在下方一行） */
+    x.textAlign = 'center';
+    x.fillStyle = '#c9c6c0'; x.font = L.starSize + 'px ' + SANS;
+    x.fillText(t.star + ' · ' + t.song, W / 2, L.starY);
+    x.textAlign = 'left';
+    x.fillStyle = '#242429'; x.fillRect(M, L.divY, W - M * 2, 2);
+
+    /* 四维条 */
+    DIMS.forEach(function(dim, bi){
+      const v = s.dims[dim.key];
+      const aWin = v.letter === dim.a.letter;
+      const by = L.barTop + bi * L.barStep;
+      x.font = L.barFont + 'px ' + SANS;
+      x.fillStyle = aWin ? '#f4f1ea' : '#6b6b74';
+      x.fillText(dim.a.label + ' ' + v.pctA + '%', L.barX, by);
+      x.textAlign = 'right';
+      x.fillStyle = aWin ? '#6b6b74' : '#f4f1ea';
+      x.fillText(v.pctB + '% ' + dim.b.label, L.barRight, by);
+      x.textAlign = 'left';
+      const bw = L.barRight - L.barX;
+      const ry = by + L.barOffset;
+      x.fillStyle = '#1a1a1f'; x.fillRect(L.barX, ry, bw, 10);
+      const aw = Math.round(bw * v.pctA / 100);
+      x.fillStyle = '#ff2b2b'; x.fillRect(L.barX, ry, aw, 10);
+      x.fillStyle = '#3c3c46'; x.fillRect(L.barX + aw, ry, bw - aw, 10);
+    });
+
+    /* 一句话 */
+    x.font = '900 ' + L.tagSize + 'px ' + SANS;
+    const lines = wrapLines(x, t.tagline, L.tagW);
+    x.fillStyle = '#ff2b2b';
+    x.fillRect(M, L.tagY + 4, 6, Math.max(24, lines.length * L.tagLineH - 14));
+    x.fillStyle = '#e9e6df';
+    lines.forEach(function(ln, i){ x.fillText(ln, M + 28, L.tagY + i * L.tagLineH); });
+
+    /* 底栏 */
+    x.font = '24px ' + SANS; x.fillStyle = '#5c5c66';
+    let foot = '摇滚人格测试';
+    if (meta && typeof meta.elapsedMs === 'number') foot = '用时 ' + formatDuration(meta.elapsedMs) + ' · ' + foot;
+    x.fillText(foot, M, L.footY);
+    x.textAlign = 'right'; x.fillStyle = '#ff2b2b';
+    x.fillText(s.code, W - M, L.footY);
+    x.textAlign = 'left';
+
+    return c;
+  }
+
+  /* ---------- 四维雷达（内联 SVG，不依赖 Canvas） ---------- */
+  function radarSvg(s){
+    const S = 320, cx = S / 2, cy = S / 2, R = 104;
+    const ang = function(i){ return -Math.PI / 2 + i * Math.PI / 2; };
+    const pt = function(i, r){
+      return [ (cx + Math.cos(ang(i)) * r).toFixed(1), (cy + Math.sin(ang(i)) * r).toFixed(1) ];
+    };
+    const quad = function(k){
+      return [0, 1, 2, 3].map(function(i){ return pt(i, R * k).join(','); }).join(' ');
+    };
+    const rings = [0.25, 0.5, 0.75, 1].map(function(k){
+      return '<polygon points="' + quad(k) + '" fill="none" stroke="#26262d" stroke-width="1"/>';
+    }).join('');
+    const spokes = [0, 1, 2, 3].map(function(i){
+      const p = pt(i, R);
+      return '<line x1="' + cx + '" y1="' + cy + '" x2="' + p[0] + '" y2="' + p[1] + '" stroke="#26262d" stroke-width="1"/>';
+    }).join('');
+    const vals = radarValues(s.dims);
+    const poly = vals.map(function(v, i){ return pt(i, R * v.pct / 100).join(','); }).join(' ');
+    const dots = vals.map(function(v, i){
+      const p = pt(i, R * v.pct / 100);
+      return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="3.5" fill="#ff2b2b"/>';
+    }).join('');
+    const labels = vals.map(function(v, i){
+      const p = pt(i, R + 36);
+      const anchor = i === 1 ? 'start' : (i === 3 ? 'end' : 'middle');
+      return '<text x="' + p[0] + '" y="' + p[1] + '" text-anchor="' + anchor + '" dy="4" ' +
+        'fill="#c9c6c0" font-size="12">' + escapeHtml(v.label + ' ' + v.pct + '%') + '</text>';
+    }).join('');
+    return '<svg viewBox="0 0 ' + S + ' ' + S + '" width="100%" role="img" aria-label="四维雷达图">' +
+      rings + spokes +
+      '<polygon points="' + poly + '" fill="rgba(255,43,43,.22)" stroke="#ff2b2b" stroke-width="2"/>' +
+      dots + labels + '</svg>';
+  }
+
+  /* ---------- result ---------- */
+  function finish(){
+    stopClock();
+    const meta = { elapsedMs: elapsedMs() };
+    LAST_META = meta;
+    SCORE = score(mapAnswers(state.order, state.answers));
+    renderResult(SCORE, meta);
+    show('result');
+  }
+
+  function renderResult(s, meta){
+    const t = s.type;
+    if (!t){
+      screens.result.innerHTML = '<p>出错了：没有匹配到人格类型。</p>';
+      return;
+    }
+    let d = 0;
+    const delay = function(){ return 'style="animation-delay:' + (d++ * 55) + 'ms"'; };
+    const codeHtml = s.code.split('').map(function(c){ return '<span>' + c + '</span>'; }).join('');
+
+    const dimsHtml = DIMS.map(function(dim){
+      const v = s.dims[dim.key];
+      const aWin = v.letter === dim.a.letter;
+      const tie = v.a === v.b && v.a > 0;
+      const note = tie
+        ? ' <em>｜平局，按你最后一题的选择记为「' + escapeHtml(aWin ? dim.a.label : dim.b.label) + '」</em>'
+        : '';
+      return '<div class="dim reveal"' + delay() + '>' +
+        '<div class="lbl">' +
+          '<span class="' + (aWin ? 'win' : '') + '">' + escapeHtml(dim.a.label) + ' ' + v.pctA + '%</span>' +
+          '<span class="' + (aWin ? '' : 'win') + '">' + v.pctB + '% ' + escapeHtml(dim.b.label) + '</span>' +
+        '</div>' +
+        '<div class="bar"><i class="a" style="--w:' + v.pctA + '%"></i><i class="b" style="--w:' + v.pctB + '%"></i></div>' +
+        '<div class="dname">' + escapeHtml(dim.name) + ' · ' + escapeHtml(dim.blurb) + note + '</div>' +
+      '</div>';
+    }).join('');
+
+    const cards = [
+      ['你的杀招', t.talent],
+      ['你的死穴', t.landmine],
+      ['你的人群位置', t.band],
+      ['你怎么爱', t.love]
+    ].map(function(c){
+      return '<div class="card"><h3>' + escapeHtml(c[0]) + '</h3><p>' + escapeHtml(c[1]) + '</p></div>';
+    }).join('');
+
+    const best = TYPES[t.best], clash = TYPES[t.clash];
+    const avg = Math.max(1, Math.round(meta.elapsedMs / 1000 / QUESTIONS.length));
+
+    screens.result.innerHTML =
+      '<div class="res-head">' +
+        '<div class="wm">' + s.code + '</div>' +
+        '<div class="kicker">YOUR ROCK TYPE</div>' +
+        '<div class="code">' + codeHtml + '</div>' +
+        '<h2 class="tname">「' + escapeHtml(t.name) + '」</h2>' +
+        '<div class="chips sm">' +
+          '<span class="chip hot">你最像 · ' + escapeHtml(t.star) + '</span>' +
+          '<span class="chip">' + escapeHtml(t.song) + '</span>' +
+          '<span class="chip">约占 ' + t.rarity + '% 的答案组合</span>' +
+        '</div>' +
+        '<p class="tagline">' + escapeHtml(t.tagline) + '</p>' +
+        '<ul class="traits">' + t.traits.map(function(x){ return '<li>' + escapeHtml(x) + '</li>'; }).join('') + '</ul>' +
+        '<p class="meta">你用 <b>' + formatDuration(meta.elapsedMs) + '</b> 答完 24 题 · 平均每题 <b>' + avg + ' 秒</b></p>' +
+      '</div>' +
+
+      '<div class="sect"><h3>四个维度，你的分</h3>' + dimsHtml + '</div>' +
+
+      '<div class="sect"><h3>你到底什么样</h3><div class="cards">' + cards + '</div></div>' +
+
+      '<div class="sect"><h3>适合你的三首歌</h3><ul class="songs">' +
+        t.songs.map(function(sg, i){
+          return '<li><b>0' + (i + 1) + '</b><span>' + escapeHtml(sg) + '</span></li>';
+        }).join('') +
+      '</ul></div>' +
+
+      '<div class="sect"><h3>这个类型的一句话</h3>' +
+        '<blockquote class="quote"><p>' + escapeHtml(t.quote) + '</p>' +
+        '<span>— ' + escapeHtml(t.quoteSrc) + '</span></blockquote>' +
+      '</div>' +
+
+      '<div class="sect"><h3>跟谁最合 · 跟谁最容易炸</h3><div class="match">' +
+        '<div class="m"><h4>最佳搭档</h4><p><b>' + t.best + '</b> 「' + escapeHtml(best.name) + '」· ' + escapeHtml(best.star) + '</p></div>' +
+        '<div class="m"><h4>最易炸</h4><p><b>' + t.clash + '</b> 「' + escapeHtml(clash.name) + '」· ' + escapeHtml(clash.star) + '</p></div>' +
+      '</div></div>' +
+
+      '<div class="sect"><h3>你的摇滚名片</h3><div class="card-wrap">' +
+        '<div class="radar">' + radarSvg(s) + '</div>' +
+        '<div class="card-meta">' +
+          '<div class="code sm">' + codeHtml + '</div>' +
+          '<p class="ct-name">「' + escapeHtml(t.name) + '」</p>' +
+          '<p class="ct-line">' + escapeHtml(t.star) + ' · ' + escapeHtml(t.song) + '</p>' +
+          '<p class="ct-note">四条轴 = 四个维度，长度是你偏向所选那一极的比例。越靠外，越极端；贴在中线，说明你两边都住得下。</p>' +
+        '</div>' +
+      '</div></div>' +
+
+      (hasCanvas ?
+        '<div class="sect"><h3>分享海报</h3><div class="poster-wrap">' +
+          '<img id="posterImg" class="poster-img" alt="摇滚人格分享海报">' +
+          '<div class="poster-side">' +
+            '<div class="size-tabs" id="sizeTabs">' +
+              Object.keys(POSTER_SIZES).map(function(k, i){
+                return '<button class="size-btn' + (i === 0 ? ' active' : '') + '" data-size="' + k + '">' +
+                  POSTER_SIZES[k].label + '</button>';
+              }).join('') +
+            '</div>' +
+            '<p id="posterNote">' + POSTER_SIZES.portrait.w + ' × ' + POSTER_SIZES.portrait.h + ' PNG · ' +
+              POSTER_SIZES.portrait.note + ' · 手机长按图片保存，或点下面直接下载。</p>' +
+            '<div class="poster-actions"><button class="btn ghost" id="dlPoster">下载海报</button></div>' +
+          '</div>' +
+        '</div></div>'
+      : '') +
+
+      '<div class="actions">' +
+        '<button class="btn" id="againBtn">再测一次</button>' +
+        '<button class="btn ghost" id="copyBtn">复制我的结果</button>' +
+      '</div>' +
+
+      '<div class="foot">' +
+        '<b>说明</b>：类型代号借用 MBTI 的四维结构，题目与文案为本测试原创；乐手形象仅作为该类人格的性格演绎，不代表其真实人格；' +
+        '歌词引用仅用于说明人格气质。测试纯属娱乐。' +
+      '</div>';
+
+    /* 海报：三档尺寸，切换时按需生成并缓存 */
+    if (hasCanvas){
+      const urls = {};
+      let current = 'portrait';
+      const note = screens.result.querySelector('#posterNote');
+      const paint = function(key){
+        if (urls[key] === undefined){
+          try { urls[key] = drawPoster(s, meta, key).toDataURL('image/png'); }
+          catch (err){ urls[key] = ''; }
+        }
+        return urls[key];
+      };
+      const apply = function(key){
+        current = key;
+        const url = paint(key);
+        const img = screens.result.querySelector('#posterImg');
+        if (img && url) img.src = url;
+        const cfg = POSTER_SIZES[key];
+        if (note && cfg){
+          note.textContent = cfg.w + ' × ' + cfg.h + ' PNG · ' + cfg.note + ' · 手机长按图片保存，或点下面直接下载。';
+        }
+        const tabs = screens.result.querySelectorAll('.size-btn');
+        for (let i = 0; i < tabs.length; i++){
+          const on = tabs[i].getAttribute('data-size') === key;
+          if (on) tabs[i].classList.add('active'); else tabs[i].classList.remove('active');
+        }
+      };
+      const tabs = screens.result.querySelectorAll('.size-btn');
+      for (let i = 0; i < tabs.length; i++){
+        (function(btn){
+          btn.addEventListener('click', function(){ apply(btn.getAttribute('data-size')); });
+        })(tabs[i]);
+      }
+      apply('portrait');
+
+      const dl = screens.result.querySelector('#dlPoster');
+      if (dl) dl.addEventListener('click', function(){
+        const url = paint(current);
+        if (!url) return;
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '摇滚人格-' + s.code + '-' + t.name + '-' + current + '.png';
+        document.body.appendChild(a);
+        if (a.click) a.click();
+        setTimeout(function(){ if (a.remove) a.remove(); }, 100);
+      });
+    }
+
+    screens.result.querySelector('#againBtn').addEventListener('click', startRun);
+    screens.result.querySelector('#copyBtn').addEventListener('click', function(){
+      const btn = this;
+      const text = shareText(s.code, s.dims, meta);
+      const done = function(msg){
+        const old = btn.textContent;
+        btn.textContent = msg;
+        setTimeout(function(){ btn.textContent = old; }, 1600);
+      };
+      const fallback = function(){
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        if (ta.select) ta.select();
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch (err){ ok = false; }
+        if (ta.remove) ta.remove();
+        done(ok ? '已复制 ✓' : '复制失败');
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(function(){ done('已复制 ✓'); }, fallback);
+      } else { fallback(); }
+    });
+  }
+
+  /* ---------- start ---------- */
+  document.getElementById('startBtn').addEventListener('click', startRun);
+
+  /* 测试钩子：不参与产品逻辑，仅供自动化测试读取运行态 */
+  if (typeof window !== 'undefined'){
+    window.__rockDebug = function(){
+      return {
+        order: state.order.slice(),
+        answers: state.answers.slice(),
+        index: state.idx,
+        code: SCORE ? SCORE.code : null,
+        elapsedMs: state.startedAt ? elapsedMs() : 0,
+        hasCanvas: hasCanvas
+      };
+    };
+  }
+})();
+</script>
+</body>
+</html>
